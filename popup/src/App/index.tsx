@@ -124,8 +124,12 @@ function App() {
     function updateYouTubeMetadataMap() {
         async function run() {
             try {
-                if (!youtubeTabs || !youtubeTabs.length) {
+                if (!youtubeTabs) {
                     return;
+                }
+
+                if (!youtubeTabs.length) {
+                    setYoutubeMetadataMap({});
                 }
 
                 const newMetadata: YouTubeMetadata[] =

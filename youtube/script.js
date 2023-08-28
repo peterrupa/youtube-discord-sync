@@ -13,8 +13,6 @@ async function handleMessage(request, sender, sendResponse) {
     }
 
     if (request.message === 'youtube_start') {
-        console.log('START');
-
         const metadata = await getMetadata();
 
         const videoElement = await waitForElement('.video-stream');
