@@ -152,6 +152,10 @@ function App() {
     }
 
     function cancelSelectionIfTabClosed() {
+        if (!youtubeTabs || !discordTabs) {
+            return;
+        }
+
         const selectedYoutubeTabIsClosed =
             selectedYouTubeTab &&
             !youtubeTabs
