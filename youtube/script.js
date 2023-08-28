@@ -7,6 +7,8 @@ async function handleMessage(request, sender, sendResponse) {
             title: metadata.name,
             channelTitle: metadata.author,
             thumbnail: metadata.thumbnailUrl[0],
+            isLivestream:
+                metadata.publication?.[0]['@type'] === 'BroadcastEvent',
         });
 
         return;
@@ -14,6 +16,10 @@ async function handleMessage(request, sender, sendResponse) {
 
     if (request.message === 'youtube_start') {
         const metadata = await getMetadata();
+
+        if (!metadata.publication) {
+            return;
+        }
 
         const videoElement = await waitForElement('.video-stream');
 

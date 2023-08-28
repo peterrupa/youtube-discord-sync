@@ -11,6 +11,7 @@ export type YouTubeMetadata = {
     title: string;
     thumbnail: string | null;
     channelTitle: string | null;
+    isLivestream: boolean;
 };
 
 export type YouTubeTabWithMetadata = YouTubeMetadata & {

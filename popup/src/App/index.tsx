@@ -48,20 +48,23 @@ function App() {
         }
 
         return (
-            youtubeTabs?.map((tab) => {
-                const defaultMetadata: YouTubeMetadata = {
-                    id: '',
-                    title: tab.title,
-                    thumbnail: null,
-                    channelTitle: null,
-                };
+            youtubeTabs
+                ?.map((tab) => {
+                    const defaultMetadata: YouTubeMetadata = {
+                        id: '',
+                        title: tab.title,
+                        thumbnail: null,
+                        channelTitle: null,
+                        isLivestream: false,
+                    };
 
-                return {
-                    ...(youtubeMetadataMap[getIDFromURL(tab.url)] ??
-                        defaultMetadata),
-                    tabId: tab.tabId,
-                };
-            }) ?? null
+                    return {
+                        ...(youtubeMetadataMap[getIDFromURL(tab.url)] ??
+                            defaultMetadata),
+                        tabId: tab.tabId,
+                    };
+                })
+                .filter((tab) => tab.isLivestream) ?? null
         );
     }, [youtubeMetadataMap, youtubeTabs]);
     const discordTabsWithMetadata = useMemo<
