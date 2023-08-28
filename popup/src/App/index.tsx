@@ -6,8 +6,6 @@ import {
     YouTubeTabWithMetadata,
 } from '../types';
 
-const API_KEY = 'AIzaSyDXdjteXzRu5QKIOu4fSVn6rNb7kCM5q3c';
-
 import './style.css';
 import { Selector } from '../Selector';
 import { Sync } from '../Sync';
@@ -15,9 +13,10 @@ import { useStorage } from '../hooks/useStorage';
 
 function App() {
     const [tabs, setTabs] = useState<Tab[] | null>(null);
-    const [youtubeMetadataMap, setYoutubeMetadataMap] = useStorage<
-        Record<string, YouTubeMetadata>
-    >('youtubeMetadataMap', {});
+    const [youtubeMetadataMap, setYoutubeMetadataMap] = useState<Record<
+        string,
+        YouTubeMetadata
+    > | null>(null);
 
     const [selectedYouTubeTab, setSelectedYouTubeTab] =
         useStorage<YouTubeTabWithMetadata | null>('selectedYouTubeTab', null);
@@ -112,27 +111,14 @@ function App() {
     }
 
     async function fetchYouTubeMetadata(
-        urls: string[]
+        tabIDs: number[]
     ): Promise<YouTubeMetadata[]> {
-        const ids = urls.map((url) => getIDFromURL(url));
+        const response = await chrome.runtime.sendMessage({
+            message: 'fetch_youtube_metadata',
+            tabIDs,
+        });
 
-        const response = await fetch(
-            `https://content-youtube.googleapis.com/youtube/v3/videos?id=${ids.join(
-                ','
-            )}&part=snippet&key=${API_KEY}`
-        );
-
-        const data = await response.json();
-
-        const videoItem = data.items;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return videoItem.map((item: any) => ({
-            id: item.id,
-            title: item.snippet.title,
-            channelTitle: item.snippet.channelTitle,
-            thumbnail: item.snippet.thumbnails.default.url,
-        }));
+        return response;
     }
 
     function updateYouTubeMetadataMap() {
@@ -144,7 +130,7 @@ function App() {
 
                 const newMetadata: YouTubeMetadata[] =
                     await fetchYouTubeMetadata(
-                        youtubeTabs.map((tab) => tab.url)
+                        youtubeTabs.map((tab) => tab.tabId)
                     );
 
                 const newMetadataMap = newMetadata.reduce(
@@ -152,30 +138,17 @@ function App() {
                     {}
                 );
 
-                setYoutubeMetadataMap({
+                setYoutubeMetadataMap((youtubeMetadataMap) => ({
                     ...youtubeMetadataMap,
                     ...newMetadataMap,
-                });
+                }));
             } catch (e) {
                 console.warn('Failed fetching YouTube metadata');
+                console.error(e);
             }
         }
 
         run();
-    }
-
-    function syncYouTubeMetadataToStorage() {
-        if (!youtubeMetadataMap) {
-            return;
-        }
-
-        if (!Object.keys(youtubeMetadataMap).length) {
-            return;
-        }
-
-        chrome.storage.local.set({
-            youtubeMetadataMap,
-        });
     }
 
     function cancelSelectionIfTabClosed() {
@@ -239,12 +212,7 @@ function App() {
     }
 
     useEffect(fetchTabs, []);
-    useEffect(updateYouTubeMetadataMap, [
-        setYoutubeMetadataMap,
-        youtubeMetadataMap,
-        youtubeTabs,
-    ]);
-    useEffect(syncYouTubeMetadataToStorage, [youtubeMetadataMap]);
+    useEffect(updateYouTubeMetadataMap, [youtubeTabs]);
     useEffect(cancelSelectionIfTabClosed, [
         discordTabs,
         selectedDiscordTab,

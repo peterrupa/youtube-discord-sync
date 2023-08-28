@@ -1,6 +1,26 @@
-console.log('YouTube Discord VOD service worker is running.');
+async function handleMessage(request, sender, sendResponse) {
+    if (request.message === 'fetch_youtube_metadata') {
+        const { tabIDs } = request;
 
-chrome.runtime.onMessage.addListener(async (request, sender) => {
+        const requests = tabIDs.map(async (id) => {
+            try {
+                const response = await chrome.tabs.sendMessage(id, {
+                    message: 'fetch_youtube_metadata',
+                });
+
+                return response;
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        const responses = await Promise.all(requests);
+
+        sendResponse(responses);
+
+        return;
+    }
+
     if (request.message === 'youtube_active') {
         // check if this tab should be playing
         const { selectedYouTubeTab } = await chrome.storage.local.get([
@@ -37,4 +57,16 @@ chrome.runtime.onMessage.addListener(async (request, sender) => {
             timestamp: request.timestamp,
         });
     }
-});
+}
+
+async function run() {
+    console.log('YouTube Discord VOD service worker is running.');
+
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        handleMessage(request, sender, sendResponse);
+
+        return true;
+    });
+}
+
+run();

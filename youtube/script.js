@@ -34,7 +34,22 @@ async function run() {
         message: 'youtube_active',
     });
 
-    chrome.runtime.onMessage.addListener((request) => {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.message === 'fetch_youtube_metadata') {
+            const scriptTag = document.querySelector('#scriptTag');
+
+            const metadata = JSON.parse(scriptTag.textContent);
+
+            sendResponse({
+                id: new URL(window.location).searchParams.get('v'),
+                title: metadata.name,
+                channelTitle: metadata.author,
+                thumbnail: metadata.thumbnailUrl[0],
+            });
+
+            return;
+        }
+
         if (request.message === 'youtube_start') {
             console.log('YouTube Discord VOD initialized.');
 
