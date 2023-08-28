@@ -1,0 +1,44 @@
+.YouTubeItem-wrapper {
+    display: flex;
+    padding: 0.25rem 1rem;
+    background: none;
+    text-align:left;
+}
+
+.YouTubeItem-wrapper:hover {
+    background: rgba(255,255,255,0.1)
+}
+
+.YouTubeItem-wrapper-active {
+    background: #457845;
+}
+
+.YouTubeItem-wrapper-active:hover {
+    background: #457845;
+}
+
+.YouTubeItem-thumbnail {
+    width: 100px;
+    height: 70px;
+    border-radius: 2px;
+}
+
+.YouTubeItem-thumbnail-dummy {
+    width: 100px;
+    height: 70px;
+    border-radius: 2px;
+    background: #6b6b6b;
+}
+
+.YouTubeItem-info-container {
+    padding-left: 0.5rem;
+}
+
+.YouTubeItem-title {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.YouTubeItem-channel-title {
+    font-size: 0.7rem;
+}

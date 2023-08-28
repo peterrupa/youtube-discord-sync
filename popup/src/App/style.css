@@ -1,0 +1,21 @@
+#root {
+  width: 300px;
+  padding: 1rem;
+}
+
+.items-container {
+  margin: 0 -1rem;
+  margin-bottom: 0.5rem;
+}
+
+.items-container:last-child {
+  margin-bottom: 0;
+}
+
+.items-container-empty-item {
+  margin: 0 1rem;
+}
+
+h2 {
+  margin-bottom: 0.5rem;
+}

@@ -1,0 +1,28 @@
+.DiscordItem-wrapper {
+    background: none;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.DiscordItem-wrapper:hover {
+    background: rgba(255,255,255,0.1)
+}
+
+.DiscordItem-wrapper-active {
+    background: #457845;
+}
+
+.DiscordItem-wrapper-active:hover {
+    background: #457845;
+}
+
+
+.DiscordItem-favicon {
+    width: 14px;
+    margin-right: 0.5rem;
+}
