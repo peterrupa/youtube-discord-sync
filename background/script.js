@@ -48,9 +48,13 @@ async function handleMessage(request, sender, sendResponse) {
     }
 
     if (request.message === 'youtube_timeupdate') {
-        const { selectedDiscordTab } = await chrome.storage.local.get([
-            'selectedDiscordTab',
-        ]);
+        const { selectedDiscordTab, isPaused } = await chrome.storage.local.get(
+            ['selectedDiscordTab', 'isPaused']
+        );
+
+        if (isPaused) {
+            return;
+        }
 
         chrome.tabs.sendMessage(selectedDiscordTab.tabId, {
             message: 'discord_timeupdate',

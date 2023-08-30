@@ -22,6 +22,7 @@ function App() {
         useStorage<YouTubeTabWithMetadata | null>('selectedYouTubeTab', null);
     const [selectedDiscordTab, setSelectedDiscordTab] =
         useStorage<DiscordTabWithMetadata | null>('selectedDiscordTab', null);
+    const [isPaused, setIsPaused] = useStorage<boolean>('isPaused', false);
 
     const youtubeTabs = useMemo<Tab[] | null>(() => {
         if (!tabs) {
@@ -187,6 +188,7 @@ function App() {
     ) {
         chrome.tabs.sendMessage(youtubeTab.tabId, { message: 'youtube_start' });
         chrome.tabs.sendMessage(discordTab.tabId, { message: 'discord_start' });
+        setIsPaused(false);
     }
 
     function handleYouTubeTabSelect(tab: YouTubeTabWithMetadata): void {
@@ -222,6 +224,14 @@ function App() {
         setSelectedDiscordTab(null);
     }
 
+    function handlePause() {
+        setIsPaused(true);
+    }
+
+    function handleResume() {
+        setIsPaused(false);
+    }
+
     useEffect(fetchTabs, []);
     useEffect(updateYouTubeMetadataMap, [youtubeTabs]);
     useEffect(cancelSelectionIfTabClosed, [
@@ -254,6 +264,9 @@ function App() {
         <Sync
             youtubeTab={selectedYouTubeTab}
             discordTab={selectedDiscordTab}
+            isPaused={isPaused ?? false}
+            onPause={handlePause}
+            onResume={handleResume}
             onCancel={handleSyncCancel}
         />
     );
