@@ -48,17 +48,37 @@ async function handleMessage(request, sender, sendResponse) {
     }
 
     if (request.message === 'youtube_timeupdate') {
-        const { selectedDiscordTab, isPaused } = await chrome.storage.local.get(
-            ['selectedDiscordTab', 'isPaused']
-        );
+        const { selectedDiscordTab, isPaused, isPremiere } =
+            await chrome.storage.local.get([
+                'selectedDiscordTab',
+                'isPaused',
+                'isPremiere',
+            ]);
 
         if (isPaused) {
             return;
         }
 
+        const { currentTime, duration } = request;
+        let { startDateTime, endDateTime } = request;
+
+        startDateTime = new Date(startDateTime);
+        endDateTime = new Date(endDateTime);
+
+        if (isPremiere) {
+            // startDateTime does not include the countdown timer
+            // Instead, lets figure out the startDateTime by using the video length and endStartDate
+            // Why not use that for actual livestreams? I don't know, when I do this for livestreams, there's a noticable delay in chat
+            startDateTime = new Date(endDateTime.getTime() - duration * 1000);
+        }
+
+        const timestamp = new Date(
+            startDateTime.getTime() + currentTime * 1000
+        ).toISOString();
+
         chrome.tabs.sendMessage(selectedDiscordTab.tabId, {
             message: 'discord_timeupdate',
-            timestamp: request.timestamp,
+            timestamp: timestamp,
         });
     }
 }
