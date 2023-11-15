@@ -14,7 +14,7 @@ async function run() {
 
         if (request.message === 'discord_timeupdate') {
             const scroller = document.querySelector(
-                "main div[class^='scroller-']"
+                "main div[class^='scroller_']"
             );
 
             if (!scroller) {
@@ -23,7 +23,7 @@ async function run() {
 
             const chatElements = Array.from(
                 document.querySelectorAll(
-                    `main div[class^='scroller-'] time[datetime]`
+                    `main div[class^='scroller_'] time[datetime]`
                 )
             ).filter((chatElement) => {
                 return (
