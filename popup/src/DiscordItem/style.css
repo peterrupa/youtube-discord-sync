@@ -10,7 +10,12 @@
 }
 
 .DiscordItem-wrapper:hover {
-    background: rgba(255,255,255,0.1)
+    background: rgba(255,255,255,0.1);
+}
+
+.DiscordItem-wrapper:hover:disabled {
+    background: none;
+    cursor: default;
 }
 
 .DiscordItem-wrapper-active {
@@ -20,7 +25,6 @@
 .DiscordItem-wrapper-active:hover {
     background: #457845;
 }
-
 
 .DiscordItem-favicon {
     width: 14px;

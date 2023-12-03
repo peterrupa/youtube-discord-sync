@@ -9,6 +9,11 @@
     background: rgba(255,255,255,0.1)
 }
 
+.YouTubeItem-wrapper:hover:disabled {
+    background: none;
+    cursor: default;
+}
+
 .YouTubeItem-wrapper-active {
     background: #457845;
 }
@@ -24,6 +29,10 @@
     background: #6b6b6b;
     background-size: cover;
     background-position: center;
+}
+
+.YouTubeItem-thumbnail.disabled {
+    opacity: 0.5;
 }
 
 .YouTubeItem-info-container {

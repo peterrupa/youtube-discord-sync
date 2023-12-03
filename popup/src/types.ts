@@ -24,3 +24,13 @@ export type DiscordTabWithMetadata = {
     serverName: string;
     channelName: string;
 };
+
+export type SyncItem = {
+    id: string;
+    youtubeTab: YouTubeTabWithMetadata;
+    discordTab: DiscordTabWithMetadata;
+    options: {
+        isPaused: boolean;
+        isPremiere: boolean;
+    };
+};

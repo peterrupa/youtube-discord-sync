@@ -7,12 +7,18 @@ type YouTubeItemProps = {
     item: YouTubeMetadata;
     selected: boolean;
     onClick: () => void;
+    disabled?: boolean;
 };
 
 // @TODO: handle overflow
 // @TODO: add skeleton state
 
-export function YouTubeItem({ item, selected, onClick }: YouTubeItemProps) {
+export function YouTubeItem({
+    item,
+    selected,
+    onClick,
+    disabled,
+}: YouTubeItemProps) {
     return (
         <button
             className={clsx(
@@ -20,10 +26,13 @@ export function YouTubeItem({ item, selected, onClick }: YouTubeItemProps) {
                 selected && 'YouTubeItem-wrapper-active'
             )}
             onClick={onClick}
+            disabled={disabled}
         >
             <div>
                 <div
-                    className="YouTubeItem-thumbnail"
+                    className={
+                        'YouTubeItem-thumbnail ' + (disabled ? 'disabled' : '')
+                    }
                     style={{
                         backgroundImage: `url(${item.thumbnail})` ?? 'none',
                     }}

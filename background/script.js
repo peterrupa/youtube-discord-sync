@@ -25,11 +25,17 @@ async function handleMessage(request, sender, sendResponse) {
 
     if (request.message === 'youtube_active') {
         // check if this tab should be playing
-        const { selectedYouTubeTab } = await chrome.storage.local.get([
-            'selectedYouTubeTab',
-        ]);
+        const { syncItems } = await chrome.storage.local.get(['syncItems']);
 
-        if (selectedYouTubeTab && selectedYouTubeTab.tabId === sender.tab.id) {
+        if (!syncItems) {
+            return;
+        }
+
+        if (
+            syncItems
+                .map((syncItem) => syncItem.youtubeTab.tabId)
+                .includes(sender.tab.id)
+        ) {
             chrome.tabs.sendMessage(sender.tab.id, {
                 message: 'youtube_start',
             });
@@ -38,11 +44,17 @@ async function handleMessage(request, sender, sendResponse) {
 
     if (request.message === 'discord_active') {
         // check if this tab should be playing
-        const { selectedDiscordTab } = await chrome.storage.local.get([
-            'selectedDiscordTab',
-        ]);
+        const { syncItems } = await chrome.storage.local.get(['syncItems']);
 
-        if (selectedDiscordTab && selectedDiscordTab.tabId === sender.tab.id) {
+        if (!syncItems) {
+            return;
+        }
+
+        if (
+            syncItems
+                .map((syncItem) => syncItem.discordTab.tabId)
+                .includes(sender.tab.id)
+        ) {
             chrome.tabs.sendMessage(sender.tab.id, {
                 message: 'discord_start',
             });
@@ -50,14 +62,21 @@ async function handleMessage(request, sender, sendResponse) {
     }
 
     if (request.message === 'youtube_timeupdate') {
-        const { selectedDiscordTab, isPaused, isPremiere } =
-            await chrome.storage.local.get([
-                'selectedDiscordTab',
-                'isPaused',
-                'isPremiere',
-            ]);
+        const { syncItems } = await chrome.storage.local.get(['syncItems']);
 
-        if (isPaused) {
+        if (!syncItems) {
+            return;
+        }
+
+        const syncItem = syncItems.find(
+            (syncItem) => syncItem.youtubeTab.tabId === sender.tab.id
+        );
+
+        if (!syncItem) {
+            return;
+        }
+
+        if (syncItem.options.isPaused) {
             return;
         }
 
@@ -67,7 +86,7 @@ async function handleMessage(request, sender, sendResponse) {
         startDateTime = new Date(startDateTime);
         endDateTime = new Date(endDateTime);
 
-        if (isPremiere) {
+        if (syncItem.options.isPremiere) {
             // startDateTime does not include the countdown timer
             // Instead, lets figure out the startDateTime by using the video length and endStartDate
             // Why not use that for actual livestreams? I don't know, when I do this for livestreams, there's a noticable delay in chat
@@ -78,7 +97,7 @@ async function handleMessage(request, sender, sendResponse) {
             startDateTime.getTime() + currentTime * 1000
         ).toISOString();
 
-        chrome.tabs.sendMessage(selectedDiscordTab.tabId, {
+        chrome.tabs.sendMessage(syncItem.discordTab.tabId, {
             message: 'discord_timeupdate',
             timestamp: timestamp,
         });

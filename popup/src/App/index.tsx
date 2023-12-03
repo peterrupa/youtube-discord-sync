@@ -1,298 +1,149 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
     DiscordTabWithMetadata,
-    Tab,
-    YouTubeMetadata,
+    SyncItem,
     YouTubeTabWithMetadata,
 } from '../types';
 
 import './style.css';
-import { Selector } from '../Selector';
+import { Home } from '../Home';
+import { Selection } from '../Selection';
+import { useSyncItems } from '../hooks/useSyncItems';
 import { Sync } from '../Sync';
-import { useStorage } from '../hooks/useStorage';
+
+type Page = 'home' | 'selection' | 'sync-details';
 
 function App() {
-    const [tabs, setTabs] = useState<Tab[] | null>(null);
-    const [youtubeMetadataMap, setYoutubeMetadataMap] = useState<Record<
-        string,
-        YouTubeMetadata
-    > | null>(null);
+    const [currentPage, setCurrentPage] = useState<Page>('home');
 
-    const [selectedYouTubeTab, setSelectedYouTubeTab] =
-        useStorage<YouTubeTabWithMetadata | null>('selectedYouTubeTab', null);
-    const [selectedDiscordTab, setSelectedDiscordTab] =
-        useStorage<DiscordTabWithMetadata | null>('selectedDiscordTab', null);
-    const [isPaused, setIsPaused] = useStorage<boolean>('isPaused', false);
-    const [isPremiere, setIsPremiere] = useStorage<boolean>(
-        'isPremiere',
-        false
+    const [syncItems, setSyncItems] = useSyncItems();
+
+    const [selectedSyncItem, setSelectedSyncItem] = useState<string | null>(
+        null
     );
 
-    const youtubeTabs = useMemo<Tab[] | null>(() => {
-        if (!tabs) {
-            return null;
-        }
-
-        return tabs.filter((tab) => tab.type === 'youtube');
-    }, [tabs]);
-    const discordTabs = useMemo<Tab[] | null>(() => {
-        if (!tabs) {
-            return null;
-        }
-
-        return tabs.filter((tab) => tab.type === 'discord');
-    }, [tabs]);
-
-    const youtubeTabsWithMetadata = useMemo<
-        YouTubeTabWithMetadata[] | null
-    >(() => {
-        // @TODO: remove livestreams
-
-        if (!youtubeMetadataMap) {
-            return null;
-        }
-
-        return (
-            youtubeTabs
-                ?.map((tab) => {
-                    const defaultMetadata: YouTubeMetadata = {
-                        id: '',
-                        title: tab.title,
-                        thumbnail: null,
-                        channelTitle: null,
-                        isLivestream: false,
-                    };
-
-                    return {
-                        ...(youtubeMetadataMap[getIDFromURL(tab.url)] ??
-                            defaultMetadata),
-                        tabId: tab.tabId,
-                    };
-                })
-                .filter((tab) => tab.isLivestream) ?? null
-        );
-    }, [youtubeMetadataMap, youtubeTabs]);
-    const discordTabsWithMetadata = useMemo<
-        DiscordTabWithMetadata[] | null
-    >(() => {
-        return (
-            discordTabs?.map((tab) => {
-                const [, channelName, serverName] = tab.title.split(' | ');
-
-                return {
-                    tabId: tab.tabId,
-                    favIconUrl: tab.favIconUrl,
-                    serverName,
-                    channelName,
-                };
-            }) ?? null
-        );
-    }, [discordTabs]);
-
-    function fetchTabs() {
-        async function run() {
-            const tabs = await chrome.tabs.query({
-                url: [
-                    'https://www.youtube.com/watch*',
-                    'https://discord.com/channels/*/*',
-                ],
-            });
-
-            setTabs(
-                tabs.map((tab) => {
-                    const type = tab.url?.startsWith('https://discord')
-                        ? 'discord'
-                        : 'youtube';
-
-                    return {
-                        tabId: tab.id ?? 1,
-                        url: tab.url ?? '',
-                        favIconUrl: tab.favIconUrl ?? '',
-                        title: tab.title ?? '',
-                        type,
-                    };
-                })
-            );
-        }
-
-        run();
-    }
-
-    async function fetchYouTubeMetadata(
-        tabIDs: number[]
-    ): Promise<YouTubeMetadata[]> {
-        const response = await chrome.runtime.sendMessage({
-            message: 'fetch_youtube_metadata',
-            tabIDs,
-        });
-
-        return response;
-    }
-
-    function updateYouTubeMetadataMap() {
-        async function run() {
-            try {
-                if (!youtubeTabs) {
-                    return;
-                }
-
-                if (!youtubeTabs.length) {
-                    setYoutubeMetadataMap({});
-                }
-
-                const newMetadata: YouTubeMetadata[] =
-                    await fetchYouTubeMetadata(
-                        youtubeTabs.map((tab) => tab.tabId)
-                    );
-
-                const newMetadataMap = newMetadata.reduce(
-                    (acc, current) => ({ ...acc, [current.id]: current }),
-                    {}
-                );
-
-                setYoutubeMetadataMap((youtubeMetadataMap) => ({
-                    ...youtubeMetadataMap,
-                    ...newMetadataMap,
-                }));
-            } catch (e) {
-                console.warn('Failed fetching YouTube metadata');
-                console.error(e);
-            }
-        }
-
-        run();
-    }
-
-    function cancelSelectionIfTabClosed() {
-        if (!youtubeTabs || !discordTabs) {
-            return;
-        }
-
-        const selectedYoutubeTabIsClosed =
-            selectedYouTubeTab &&
-            !youtubeTabs
-                ?.map((tab) => tab.tabId)
-                .includes(selectedYouTubeTab.tabId);
-
-        const selectedDiscordTabIsClosed =
-            selectedDiscordTab &&
-            !discordTabs
-                ?.map((tab) => tab.tabId)
-                .includes(selectedDiscordTab.tabId);
-
-        if (selectedYoutubeTabIsClosed || selectedDiscordTabIsClosed) {
-            setSelectedYouTubeTab(null);
-            setSelectedDiscordTab(null);
-        }
-    }
-
-    function initializeSyncing(
+    async function initializeSyncing(
         youtubeTab: YouTubeTabWithMetadata,
         discordTab: DiscordTabWithMetadata
     ) {
+        const id = `${youtubeTab.tabId}/${discordTab.tabId}`;
+
+        const newSyncItem: SyncItem = {
+            id,
+            youtubeTab,
+            discordTab,
+            options: {
+                isPaused: false,
+                isPremiere: false,
+            },
+        };
+
+        setSyncItems([...(syncItems ?? []), newSyncItem]);
+
         chrome.tabs.sendMessage(youtubeTab.tabId, { message: 'youtube_start' });
         chrome.tabs.sendMessage(discordTab.tabId, { message: 'discord_start' });
-        setIsPaused(false);
-        setIsPremiere(false);
+
+        setCurrentPage('home');
     }
 
-    function handleYouTubeTabSelect(tab: YouTubeTabWithMetadata): void {
-        setSelectedYouTubeTab(tab);
+    function handleSyncCancel(id: string) {
+        const syncItem = syncItems.find((item) => item.id === id);
 
-        if (selectedDiscordTab) {
-            initializeSyncing(tab, selectedDiscordTab);
-        }
-    }
-
-    function handleDiscordTabSelect(tab: DiscordTabWithMetadata) {
-        setSelectedDiscordTab(tab);
-
-        if (selectedYouTubeTab) {
-            initializeSyncing(selectedYouTubeTab, tab);
-        }
-    }
-
-    function handleSyncCancel() {
-        if (selectedYouTubeTab) {
-            chrome.tabs.sendMessage(selectedYouTubeTab.tabId, {
-                message: 'youtube_cancel',
-            });
+        if (!syncItem) {
+            return;
         }
 
-        if (selectedDiscordTab) {
-            chrome.tabs.sendMessage(selectedDiscordTab.tabId, {
-                message: 'discord_cancel',
-            });
+        chrome.tabs.sendMessage(syncItem.youtubeTab.tabId, {
+            message: 'youtube_cancel',
+        });
+
+        chrome.tabs.sendMessage(syncItem.discordTab.tabId, {
+            message: 'discord_cancel',
+        });
+
+        setSyncItems(syncItems.filter((item) => item.id !== id));
+    }
+
+    function handlePauseChange(id: string, value: boolean) {
+        const syncItem = syncItems.find((item) => item.id === id);
+
+        if (!syncItem) {
+            return;
         }
 
-        setSelectedYouTubeTab(null);
-        setSelectedDiscordTab(null);
+        setSyncItems(
+            syncItems
+                .filter((item) => item.id !== id)
+                .concat({
+                    ...syncItem,
+                    options: {
+                        ...syncItem.options,
+                        isPaused: value,
+                    },
+                })
+        );
     }
 
-    function handlePause() {
-        setIsPaused(true);
+    function handlePremiereChange(id: string, value: boolean) {
+        const syncItem = syncItems.find((item) => item.id === id);
+
+        if (!syncItem) {
+            return;
+        }
+
+        setSyncItems(
+            syncItems
+                .filter((item) => item.id !== id)
+                .concat({
+                    ...syncItem,
+                    options: {
+                        ...syncItem.options,
+                        isPremiere: value,
+                    },
+                })
+        );
     }
 
-    function handleResume() {
-        setIsPaused(false);
+    function handleAddSync() {
+        setCurrentPage('selection');
     }
 
-    function handlePremiereChange(isPremiere: boolean) {
-        setIsPremiere(isPremiere);
+    function handleBack() {
+        setCurrentPage('home');
     }
 
-    useEffect(fetchTabs, []);
-    useEffect(updateYouTubeMetadataMap, [youtubeTabs]);
-    useEffect(cancelSelectionIfTabClosed, [
-        discordTabs,
-        selectedDiscordTab,
-        selectedYouTubeTab,
-        setSelectedDiscordTab,
-        setSelectedYouTubeTab,
-        youtubeTabs,
-    ]);
-
-    if (!youtubeTabsWithMetadata || !discordTabsWithMetadata) {
-        return <div></div>;
+    function handleActiveSyncSelect(syncItem: SyncItem) {
+        setSelectedSyncItem(syncItem.id);
+        setCurrentPage('sync-details');
     }
 
-    if (!selectedYouTubeTab || !selectedDiscordTab) {
+    if (currentPage === 'sync-details' && selectedSyncItem) {
         return (
-            <Selector
-                youtubeTabs={youtubeTabsWithMetadata}
-                discordTabs={discordTabsWithMetadata}
-                onYouTubeSelect={handleYouTubeTabSelect}
-                onDiscordSelect={handleDiscordTabSelect}
-                selectedYouTubeTab={selectedYouTubeTab}
-                selectedDiscordTab={selectedDiscordTab}
+            <Sync
+                id={selectedSyncItem}
+                onBack={handleBack}
+                onPauseChange={(value) =>
+                    handlePauseChange(selectedSyncItem, value)
+                }
+                onCancel={() => handleSyncCancel(selectedSyncItem)}
+                onPremiereChange={(value) =>
+                    handlePremiereChange(selectedSyncItem, value)
+                }
             />
         );
     }
 
+    if (currentPage === 'selection') {
+        return <Selection onSync={initializeSyncing} onBack={handleBack} />;
+    }
+
     return (
-        <Sync
-            youtubeTab={selectedYouTubeTab}
-            discordTab={selectedDiscordTab}
-            isPaused={isPaused ?? false}
-            isPremiere={isPremiere ?? false}
-            onPremiereChange={handlePremiereChange}
-            onPause={handlePause}
-            onResume={handleResume}
-            onCancel={handleSyncCancel}
+        <Home
+            syncItems={syncItems ?? []}
+            onAddSyncClick={handleAddSync}
+            onActiveSyncSelect={handleActiveSyncSelect}
         />
     );
 }
 
 export default App;
-
-function getIDFromURL(url: string): string {
-    const urlObject = new URL(url);
-
-    const id = urlObject.searchParams.get('v');
-
-    if (!id) {
-        throw new Error('ID not found in URL');
-    }
-
-    return id;
-}
