@@ -19,15 +19,11 @@
 
 .YouTubeItem-thumbnail {
     width: 100px;
-    height: 70px;
-    border-radius: 2px;
-}
-
-.YouTubeItem-thumbnail-dummy {
-    width: 100px;
-    height: 70px;
+    height: 56px;
     border-radius: 2px;
     background: #6b6b6b;
+    background-size: cover;
+    background-position: center;
 }
 
 .YouTubeItem-info-container {

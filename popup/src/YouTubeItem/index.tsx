@@ -22,14 +22,12 @@ export function YouTubeItem({ item, selected, onClick }: YouTubeItemProps) {
             onClick={onClick}
         >
             <div>
-                {item.thumbnail ? (
-                    <img
-                        className="YouTubeItem-thumbnail"
-                        src={item.thumbnail}
-                    />
-                ) : (
-                    <div className="YouTubeItem-thumbnail-dummy" />
-                )}
+                <div
+                    className="YouTubeItem-thumbnail"
+                    style={{
+                        backgroundImage: `url(${item.thumbnail})` ?? 'none',
+                    }}
+                />
             </div>
             <div className="YouTubeItem-info-container">
                 <div className="YouTubeItem-title">{item.title}</div>

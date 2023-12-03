@@ -7,4 +7,4 @@
 -   [ ] Extension name??
 -   [ ] Extension logo
 -   [ ] Extension store details
--   [] This README
+-   [ ] This README
