@@ -14,7 +14,9 @@ async function handleMessage(request, sender, sendResponse) {
             }
         });
 
-        const responses = await Promise.all(requests);
+        const responses = (await Promise.all(requests)).filter(
+            (response) => !!response
+        );
 
         sendResponse(responses);
 

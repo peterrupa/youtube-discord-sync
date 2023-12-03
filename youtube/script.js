@@ -1,37 +1,33 @@
 async function handleMessage(request, sender, sendResponse) {
-    try {
-        if (request.message === 'fetch_youtube_metadata') {
-            const metadata = await getMetadata();
+    if (request.message === 'fetch_youtube_metadata') {
+        try {
+            const metadata = getMetadata();
 
             sendResponse({
                 id: new URL(window.location).searchParams.get('v'),
-                title: metadata.name,
-                channelTitle: metadata.author,
-                thumbnail: metadata.thumbnailUrl[0],
-                isLivestream:
-                    metadata.publication?.[0]['@type'] === 'BroadcastEvent',
+                title: metadata.title,
+                channelTitle: metadata.channelTitle,
+                thumbnail: metadata.thumbnail,
+                isLivestream: metadata.isLivestream,
             });
 
             return;
+        } catch (e) {
+            sendResponse(null);
         }
+    }
 
-        if (request.message === 'youtube_start') {
-            const metadata = await getMetadata();
-
-            if (!metadata.publication) {
-                return;
-            }
+    if (request.message === 'youtube_start') {
+        try {
+            const metadata = getMetadata();
 
             const videoElement = await waitForElement('.video-stream');
-
-            const endDateTime = new Date(metadata.publication[0].endDate);
-            const startDateTime = new Date(metadata.publication[0].startDate);
 
             function handleTimeUpdate(event) {
                 chrome.runtime.sendMessage({
                     message: 'youtube_timeupdate',
-                    startDateTime,
-                    endDateTime,
+                    startDateTime: metadata.startDateTime,
+                    endDateTime: metadata.endDateTime,
                     currentTime: event.target.currentTime,
                     duration: videoElement.duration,
                 });
@@ -40,15 +36,15 @@ async function handleMessage(request, sender, sendResponse) {
             console.log('YouTube Discord VOD initialized.');
 
             videoElement.addEventListener('timeupdate', handleTimeUpdate);
+        } catch (e) {
+            sendMessage(null);
         }
+    }
 
-        if (request.message === 'youtube_cancel') {
-            console.log('YouTube Discord VOD stopped.');
+    if (request.message === 'youtube_cancel') {
+        console.log('YouTube Discord VOD stopped.');
 
-            videoElement.removeEventListener('timeupdate', handleTimeUpdate);
-        }
-    } catch (e) {
-        throw e;
+        videoElement.removeEventListener('timeupdate', handleTimeUpdate);
     }
 }
 
@@ -60,12 +56,49 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleMessage(request, sender, sendResponse);
 });
 
-async function getMetadata() {
-    const scriptTag = await waitForElement('#scriptTag');
+function getMetadata() {
+    const title = document
+        .querySelector('meta[itemprop="name"]')
+        ?.getAttribute('content');
+    const thumbnail = document
+        .querySelector('link[itemprop="thumbnailUrl"]')
+        ?.getAttribute('href');
+    const channelTitle = document
+        .querySelector('span[itemprop="author"] link[itemprop="name"]')
+        ?.getAttribute('content');
+    const isLivestream =
+        document
+            .querySelector(
+                'span[itemprop="publication"] meta[itemprop="isLiveBroadcast"]'
+            )
+            ?.getAttribute('content') === 'True';
+    const startDateTime = new Date(
+        document
+            .querySelector(
+                'span[itemprop="publication"] meta[itemprop="startDate"]'
+            )
+            ?.getAttribute('content')
+    );
+    const endDateTime = new Date(
+        document
+            .querySelector(
+                'span[itemprop="publication"] meta[itemprop="endDate"]'
+            )
+            ?.getAttribute('content')
+    );
 
-    const metadata = JSON.parse(scriptTag.textContent);
+    if (!title || !channelTitle || !startDateTime) {
+        throw new Error('Incomplete YouTube metadata');
+    }
 
-    return metadata;
+    return {
+        title,
+        channelTitle,
+        thumbnail,
+        isLivestream,
+        startDateTime,
+        endDateTime,
+    };
 }
 
 const WAIT_FOR_ELEMENT_DURATION = 2000;
