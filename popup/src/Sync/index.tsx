@@ -1,10 +1,10 @@
-import { Tooltip } from 'react-tooltip';
+import { ChangeEvent, SyntheticEvent } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
-import { SyntheticEvent } from 'react';
+import { Tooltip } from 'react-tooltip';
 import { useSyncItems } from '../hooks/useSyncItems';
 
-import './style.css';
 import { ClearButton } from '../ClearButton';
+import './style.css';
 
 type SyncProps = {
     id: string;
@@ -12,6 +12,7 @@ type SyncProps = {
     onPauseChange: (value: boolean) => void;
     onCancel: () => void;
     onPremiereChange: (value: boolean) => void;
+    onOffsetChange: (value: number) => void;
 };
 
 export function Sync({
@@ -20,6 +21,7 @@ export function Sync({
     onPauseChange,
     onCancel,
     onPremiereChange,
+    onOffsetChange,
 }: SyncProps) {
     const [syncItems] = useSyncItems();
 
@@ -41,6 +43,12 @@ export function Sync({
         };
 
         onPremiereChange(target.checked);
+    }
+
+    function handleOffsetChange(e: ChangeEvent<HTMLInputElement>) {
+        const value = parseFloat(e.target.value);
+
+        onOffsetChange(value);
     }
 
     return (
@@ -96,6 +104,15 @@ export function Sync({
                 >
                     Premiere Video
                 </span>
+            </div>
+            <div className="sync-checklist-row">
+                <span className="offset">Offset:</span>
+                <input
+                    type="number"
+                    onChange={handleOffsetChange}
+                    value={syncItem.options.offset}
+                />
+                <span> seconds</span>
             </div>
             <Tooltip id="premiere-tooltip" />
         </div>

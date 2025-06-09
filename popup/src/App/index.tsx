@@ -5,11 +5,11 @@ import {
     YouTubeTabWithMetadata,
 } from '../types';
 
-import './style.css';
 import { Home } from '../Home';
-import { Selection } from '../Selection';
 import { useSyncItems } from '../hooks/useSyncItems';
+import { Selection } from '../Selection';
 import { Sync } from '../Sync';
+import './style.css';
 
 type Page = 'home' | 'selection' | 'sync-details';
 
@@ -35,6 +35,7 @@ function App() {
             options: {
                 isPaused: false,
                 isPremiere: false,
+                offset: 0,
             },
         };
 
@@ -104,6 +105,26 @@ function App() {
         );
     }
 
+    function handleOffsetChange(id: string, value: number) {
+        const syncItem = syncItems.find((item) => item.id === id);
+
+        if (!syncItem) {
+            return;
+        }
+
+        setSyncItems(
+            syncItems
+                .filter((item) => item.id !== id)
+                .concat({
+                    ...syncItem,
+                    options: {
+                        ...syncItem.options,
+                        offset: value,
+                    },
+                })
+        );
+    }
+
     function handleAddSync() {
         setCurrentPage('selection');
     }
@@ -128,6 +149,9 @@ function App() {
                 onCancel={() => handleSyncCancel(selectedSyncItem)}
                 onPremiereChange={(value) =>
                     handlePremiereChange(selectedSyncItem, value)
+                }
+                onOffsetChange={(value) =>
+                    handleOffsetChange(selectedSyncItem, value)
                 }
             />
         );

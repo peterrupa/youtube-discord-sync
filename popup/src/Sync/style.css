@@ -44,4 +44,19 @@
 .sync-checklist-row {
     display: flex;
     align-items: center;
+    margin-bottom: 1rem;
+}
+
+.sync-offset-row {
+    display: flex;
+    align-items: center;
+}
+
+.sync-offset-row > .offset {
+    margin-right: 0.5rem;
+}
+
+.sync-offset-row > input {
+    width: 100px;
+    margin-right: 0.5rem;
 }

@@ -32,5 +32,6 @@ export type SyncItem = {
     options: {
         isPaused: boolean;
         isPremiere: boolean;
+        offset: number;
     };
 };

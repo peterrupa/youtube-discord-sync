@@ -1,8 +1,8 @@
 import { UseMutateFunction } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { SyncItem } from '../types';
 import { useStorage } from './useStorage';
 import { useTabs } from './useTabs';
-import { useEffect } from 'react';
 
 export function useSyncItems(): [
     SyncItem[],
@@ -10,6 +10,8 @@ export function useSyncItems(): [
 ] {
     const tabs = useTabs();
     const [syncItems, setSyncItems] = useStorage<SyncItem[]>('syncItems', []);
+
+    console.log(syncItems);
 
     function cancelSyncItemIfClosed() {
         if (!tabs || !syncItems) {
