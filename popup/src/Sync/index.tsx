@@ -105,7 +105,7 @@ export function Sync({
                     Premiere Video
                 </span>
             </div>
-            <div className="sync-checklist-row">
+            <div className="sync-offset-row">
                 <span className="offset">Offset:</span>
                 <input
                     type="number"
