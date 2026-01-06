@@ -1,9 +1,7 @@
 ### TODO:
 
 -   [ ] Support multiple syncs
--   [ ] Support holodex
--   [ ] Support SPWN
--   [ ] Support manual syncing
+-   [ ] Support embedded YouTube
 -   [x] Offset option
 -   [x] Display VOD current time
 -   [ ] Extension name??
