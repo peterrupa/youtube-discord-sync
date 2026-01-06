@@ -1,6 +1,12 @@
 {
-  "dependencies": {
-    "react-icons": "^4.12.0",
-    "react-tooltip": "^5.24.0"
-  }
+    "scripts": {
+        "build": "echo 'Please ensure the popup code has been built!' && shx rm -rf dist && shx mkdir -p dist/background && shx cp -r src/background dist && shx cp -r src/discord dist && shx cp -r src/popup/dist dist/popup && shx cp -r src/youtube dist && shx cp -r src/assets dist && shx cp -r src/manifest.json dist"
+    },
+    "dependencies": {
+        "react-icons": "^4.12.0",
+        "react-tooltip": "^5.24.0"
+    },
+    "devDependencies": {
+        "shx": "^0.4.0"
+    }
 }

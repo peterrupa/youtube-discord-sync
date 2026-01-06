@@ -1,10 +1,10 @@
 {
     "manifest_version": 3,
-    "name": "YouTube Discord VOD",
+    "name": "YouTube Discord Sync",
     "description": "Replays Discord chat while playing YouTube VODs.",
     "version": "0.1",
     "action": {
-        "default_popup": "popup/dist/index.html"
+        "default_popup": "popup/index.html"
     },
     "host_permissions": ["https://www.youtube.com/*", "https://discord.com/*"],
     "permissions": ["storage"],
@@ -20,5 +20,11 @@
     ],
     "background": {
         "service_worker": "background/script.js"
+    },
+    "icons": {
+        "16": "assets/16.png",
+        "32": "assets/32.png",
+        "48": "assets/48.png",
+        "128": "assets/128.png"
     }
 }

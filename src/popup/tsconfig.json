@@ -20,6 +20,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src/popup/src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
