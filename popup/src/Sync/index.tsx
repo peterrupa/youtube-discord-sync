@@ -1,9 +1,10 @@
-import { ChangeEvent, SyntheticEvent } from 'react';
+import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
 import { useSyncItems } from '../hooks/useSyncItems';
 
 import { ClearButton } from '../ClearButton';
+import { TimestampUpdateEvent } from '../types';
 import './style.css';
 
 type SyncProps = {
@@ -23,15 +24,13 @@ export function Sync({
     onPremiereChange,
     onOffsetChange,
 }: SyncProps) {
+    const [currentTimestamp, setCurrentTimestamp] = useState<number | null>(
+        null
+    );
+
     const [syncItems] = useSyncItems();
 
     const syncItem = syncItems.find((item) => item.id === id);
-
-    if (!syncItem) {
-        onBack();
-
-        return;
-    }
 
     function togglePause() {
         onPauseChange(!syncItem?.options.isPaused);
@@ -49,6 +48,41 @@ export function Sync({
         const value = parseFloat(e.target.value);
 
         onOffsetChange(value);
+    }
+
+    function handleTimestampUpdate(request: unknown) {
+        if (
+            request &&
+            typeof request === 'object' &&
+            'message' in request &&
+            typeof request.message === 'string' &&
+            request.message === 'youtube_timeupdate'
+        ) {
+            const currentRequest = request as TimestampUpdateEvent;
+
+            const startTimestamp = new Date(
+                currentRequest.startDateTime
+            ).getTime();
+            const currentTimeInMilliseconds = currentRequest.currentTime * 1000;
+
+            setCurrentTimestamp(startTimestamp + currentTimeInMilliseconds);
+        }
+    }
+
+    function listenForTimestampUpdate() {
+        chrome.runtime.onMessage.addListener(handleTimestampUpdate);
+
+        return () => {
+            chrome.runtime.onMessage.removeListener(handleTimestampUpdate);
+        };
+    }
+
+    useEffect(listenForTimestampUpdate, []);
+
+    if (!syncItem) {
+        onBack();
+
+        return;
     }
 
     return (
@@ -76,12 +110,19 @@ export function Sync({
                         </div>
                     </div>
 
-                    <div className="sync-discord-item">
-                        <img
-                            className="DiscordItem-favicon"
-                            src={syncItem.discordTab.favIconUrl}
-                        />
-                        <strong>{syncItem.discordTab.channelName}</strong>
+                    <div className="sync-bottom-row">
+                        <div className="sync-discord-item">
+                            <img
+                                className="DiscordItem-favicon"
+                                src={syncItem.discordTab.favIconUrl}
+                            />
+                            <strong>{syncItem.discordTab.channelName}</strong>
+                        </div>
+                        {currentTimestamp && (
+                            <div className="sync-current-time">
+                                {new Date(currentTimestamp).toLocaleString()}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

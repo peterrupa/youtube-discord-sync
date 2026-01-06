@@ -35,3 +35,15 @@ export type SyncItem = {
         offset: number;
     };
 };
+
+export type MessageEvent = {
+    message: string;
+};
+
+export type TimestampUpdateEvent = MessageEvent & {
+    message: 'youtube_timeupdate';
+    startDateTime: string;
+    endDateTime: string;
+    currentTime: number;
+    duration: number;
+};

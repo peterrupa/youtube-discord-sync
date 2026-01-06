@@ -34,11 +34,20 @@
     margin-left: -0.5rem;
 }
 
-.sync-discord-item {
+.sync-bottom-row {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     padding: 0.5rem 0;
+}
+
+.sync-discord-item {
+    display: flex;
+    align-items: center;
+}
+
+.sync-current-time {
+    font-size: 0.7rem;
 }
 
 .sync-checklist-row {
