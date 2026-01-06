@@ -11,8 +11,6 @@ export function useSyncItems(): [
     const tabs = useTabs();
     const [syncItems, setSyncItems] = useStorage<SyncItem[]>('syncItems', []);
 
-    console.log(syncItems);
-
     function cancelSyncItemIfClosed() {
         if (!tabs || !syncItems) {
             return;
