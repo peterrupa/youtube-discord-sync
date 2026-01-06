@@ -1,9 +1,11 @@
 ### TODO:
 
 -   [ ] Support multiple syncs
--   [ ] Offset option
+-   [ ] Support holodex
+-   [ ] Support SPWN
+-   [ ] Support manual syncing
+-   [x] Offset option
 -   [x] Display VOD current time
--   [ ] Discord input guard
 -   [ ] Extension name??
 -   [ ] Extension logo
 -   [ ] Extension store details
