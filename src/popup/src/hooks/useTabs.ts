@@ -10,6 +10,7 @@ export function useTabs(): Tab[] | null {
             const tabs = await chrome.tabs.query({
                 url: [
                     'https://www.youtube.com/watch*',
+                    'https://www.youtube.com/live/*',
                     'https://discord.com/channels/*/*',
                 ],
             });

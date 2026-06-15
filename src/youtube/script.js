@@ -3,8 +3,13 @@ async function handleMessage(request, sender, sendResponse) {
         try {
             const metadata = getMetadata();
 
+            const url = new URL(window.location);
+
+            const id =
+                url.searchParams.get('v') || url.pathname.split('/').pop();
+
             sendResponse({
-                id: new URL(window.location).searchParams.get('v'),
+                id,
                 title: metadata.title,
                 channelTitle: metadata.channelTitle,
                 thumbnail: metadata.thumbnail,

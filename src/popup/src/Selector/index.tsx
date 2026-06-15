@@ -221,7 +221,8 @@ export function Selector({ onSync }: SelectorProps) {
 function getIDFromURL(url: string): string {
     const urlObject = new URL(url);
 
-    const id = urlObject.searchParams.get('v');
+    const id =
+        urlObject.searchParams.get('v') || urlObject.pathname.split('/').pop();
 
     if (!id) {
         throw new Error('ID not found in URL');
