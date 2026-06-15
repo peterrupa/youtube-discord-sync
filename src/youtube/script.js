@@ -57,35 +57,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function getMetadata() {
-    const title = document
-        .querySelector('meta[itemprop="name"]')
-        ?.getAttribute('content');
-    const thumbnail = document
-        .querySelector('link[itemprop="thumbnailUrl"]')
-        ?.getAttribute('href');
-    const channelTitle = document
-        .querySelector('span[itemprop="author"] link[itemprop="name"]')
-        ?.getAttribute('content');
-    const isLivestream =
-        document
-            .querySelector(
-                'span[itemprop="publication"] meta[itemprop="isLiveBroadcast"]'
-            )
-            ?.getAttribute('content') === 'True';
-    const startDateTime = new Date(
-        document
-            .querySelector(
-                'span[itemprop="publication"] meta[itemprop="startDate"]'
-            )
-            ?.getAttribute('content')
+    const microformat = JSON.parse(
+        document.querySelector(
+            '#microformat script[type="application/ld+json"]',
+        ).textContent,
     );
-    const endDateTime = new Date(
-        document
-            .querySelector(
-                'span[itemprop="publication"] meta[itemprop="endDate"]'
-            )
-            ?.getAttribute('content')
-    );
+
+    const title = microformat.name;
+    const thumbnail = microformat.thumbnailUrl?.[0];
+    const channelTitle = microformat.author;
+
+    const publication = microformat.publication[0] ?? {};
+
+    const isLivestream = publication.isLiveBroadcast ?? false;
+    const startDateTime = new Date(publication.startDate);
+    const endDateTime = new Date(publication.endDate);
 
     if (!title || !channelTitle || !startDateTime) {
         throw new Error('Incomplete YouTube metadata');
