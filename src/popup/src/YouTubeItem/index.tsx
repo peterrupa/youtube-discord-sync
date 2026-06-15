@@ -34,7 +34,7 @@ export function YouTubeItem({
                         'YouTubeItem-thumbnail ' + (disabled ? 'disabled' : '')
                     }
                     style={{
-                        backgroundImage: `url(${item.thumbnail})` ?? 'none',
+                        backgroundImage: `url(${item.thumbnail})`,
                     }}
                 />
             </div>
