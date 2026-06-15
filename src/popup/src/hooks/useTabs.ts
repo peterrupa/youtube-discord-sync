@@ -1,6 +1,6 @@
 import { Tab } from '../types';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function useTabs(): Tab[] | null {
     const [tabs, setTabs] = useState<Tab[] | null>(null);
@@ -27,7 +27,7 @@ export function useTabs(): Tab[] | null {
                         title: tab.title ?? '',
                         type,
                     };
-                })
+                }),
             );
         }
 

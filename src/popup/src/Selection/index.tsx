@@ -1,15 +1,15 @@
 import { FaArrowLeft } from 'react-icons/fa';
 
+import { ClearButton } from '../ClearButton';
 import { Selector } from '../Selector';
 import { DiscordTabWithMetadata, YouTubeTabWithMetadata } from '../types';
-import { ClearButton } from '../ClearButton';
 
 import './style.css';
 
 type SelectionProps = {
     onSync: (
         youtubeTab: YouTubeTabWithMetadata,
-        discordTab: DiscordTabWithMetadata
+        discordTab: DiscordTabWithMetadata,
     ) => void;
     onBack: () => void;
 };

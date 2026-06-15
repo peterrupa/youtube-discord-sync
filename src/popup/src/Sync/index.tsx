@@ -25,7 +25,7 @@ export function Sync({
     onOffsetChange,
 }: SyncProps) {
     const [currentTimestamp, setCurrentTimestamp] = useState<number | null>(
-        null
+        null,
     );
 
     const [syncItems] = useSyncItems();
@@ -61,7 +61,7 @@ export function Sync({
             const currentRequest = request as TimestampUpdateEvent;
 
             const startTimestamp = new Date(
-                currentRequest.startDateTime
+                currentRequest.startDateTime,
             ).getTime();
             const currentTimeInMilliseconds = currentRequest.currentTime * 1000;
 

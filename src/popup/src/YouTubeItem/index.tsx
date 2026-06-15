@@ -23,7 +23,7 @@ export function YouTubeItem({
         <button
             className={clsx(
                 'YouTubeItem-wrapper',
-                selected && 'YouTubeItem-wrapper-active'
+                selected && 'YouTubeItem-wrapper-active',
             )}
             onClick={onClick}
             disabled={disabled}

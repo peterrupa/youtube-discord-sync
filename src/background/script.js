@@ -15,7 +15,7 @@ async function handleMessage(request, sender, sendResponse) {
         });
 
         const responses = (await Promise.all(requests)).filter(
-            (response) => !!response
+            (response) => !!response,
         );
 
         sendResponse(responses);
@@ -70,7 +70,7 @@ async function handleMessage(request, sender, sendResponse) {
 
         // @TODO: make this a filter to support 1:n youtube:discord sync
         const syncItem = syncItems.find(
-            (syncItem) => syncItem.youtubeTab.tabId === sender.tab.id
+            (syncItem) => syncItem.youtubeTab.tabId === sender.tab.id,
         );
 
         if (!syncItem) {
@@ -96,7 +96,7 @@ async function handleMessage(request, sender, sendResponse) {
 
         const timestamp = new Date(
             startDateTime.getTime() +
-                (currentTime - syncItem.options.offset) * 1000
+                (currentTime - syncItem.options.offset) * 1000,
         ).toISOString();
 
         chrome.tabs.sendMessage(syncItem.discordTab.tabId, {

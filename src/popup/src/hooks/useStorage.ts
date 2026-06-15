@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 
 export function useStorage<T>(
     key: string,
-    initialValue: T
+    initialValue: T,
 ): [T | undefined, UseMutateFunction<void, unknown, T, unknown>] {
     const queryClient = useQueryClient();
 

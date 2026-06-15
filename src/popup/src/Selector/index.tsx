@@ -1,20 +1,20 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { DiscordItem } from '../DiscordItem';
 import { YouTubeItem } from '../YouTubeItem';
+import { useSyncItems } from '../hooks/useSyncItems';
+import { useTabs } from '../hooks/useTabs';
 import {
     DiscordTabWithMetadata,
     Tab,
     YouTubeMetadata,
     YouTubeTabWithMetadata,
 } from '../types';
-import { useTabs } from '../hooks/useTabs';
-import { useSyncItems } from '../hooks/useSyncItems';
 
 type SelectorProps = {
     onSync: (
         youtubeTab: YouTubeTabWithMetadata,
-        discordTab: DiscordTabWithMetadata
+        discordTab: DiscordTabWithMetadata,
     ) => void;
 };
 
@@ -94,10 +94,10 @@ export function Selector({ onSync }: SelectorProps) {
     const isTabSyncing = useCallback(
         (tabId: number) => {
             const youtubeSyncingTabIds = syncItems.map(
-                (item) => item.youtubeTab.tabId
+                (item) => item.youtubeTab.tabId,
             );
             const discordSyncingTabIds = syncItems.map(
-                (item) => item.discordTab.tabId
+                (item) => item.discordTab.tabId,
             );
 
             return (
@@ -105,7 +105,7 @@ export function Selector({ onSync }: SelectorProps) {
                 discordSyncingTabIds.includes(tabId)
             );
         },
-        [syncItems]
+        [syncItems],
     );
 
     function updateYouTubeMetadataMap() {
@@ -121,12 +121,12 @@ export function Selector({ onSync }: SelectorProps) {
 
                 const newMetadata: YouTubeMetadata[] =
                     await fetchYouTubeMetadata(
-                        youtubeTabs.map((tab) => tab.tabId)
+                        youtubeTabs.map((tab) => tab.tabId),
                     );
 
                 const newMetadataMap = newMetadata.reduce(
                     (acc, current) => ({ ...acc, [current.id]: current }),
-                    {}
+                    {},
                 );
 
                 setYoutubeMetadataMap((youtubeMetadataMap) => ({
@@ -143,7 +143,7 @@ export function Selector({ onSync }: SelectorProps) {
     }
 
     async function fetchYouTubeMetadata(
-        tabIDs: number[]
+        tabIDs: number[],
     ): Promise<YouTubeMetadata[]> {
         const response = await chrome.runtime.sendMessage({
             message: 'fetch_youtube_metadata',

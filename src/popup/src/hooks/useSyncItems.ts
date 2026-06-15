@@ -6,7 +6,7 @@ import { useTabs } from './useTabs';
 
 export function useSyncItems(): [
     SyncItem[],
-    UseMutateFunction<void, unknown, SyncItem[], unknown>
+    UseMutateFunction<void, unknown, SyncItem[], unknown>,
 ] {
     const tabs = useTabs();
     const [syncItems, setSyncItems] = useStorage<SyncItem[]>('syncItems', []);
@@ -27,13 +27,13 @@ export function useSyncItems(): [
 
         if (syncItemsToRemove.length) {
             const syncItemsToRemoveId = syncItemsToRemove.map(
-                (item) => item.id
+                (item) => item.id,
             );
 
             setSyncItems(
                 syncItems.filter(
-                    (syncItem) => !syncItemsToRemoveId.includes(syncItem.id)
-                )
+                    (syncItem) => !syncItemsToRemoveId.includes(syncItem.id),
+                ),
             );
         }
     }

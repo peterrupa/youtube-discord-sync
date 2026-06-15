@@ -19,12 +19,12 @@ function App() {
     const [syncItems, setSyncItems] = useSyncItems();
 
     const [selectedSyncItem, setSelectedSyncItem] = useState<string | null>(
-        null
+        null,
     );
 
     async function initializeSyncing(
         youtubeTab: YouTubeTabWithMetadata,
-        discordTab: DiscordTabWithMetadata
+        discordTab: DiscordTabWithMetadata,
     ) {
         const id = `${youtubeTab.tabId}/${discordTab.tabId}`;
 
@@ -81,7 +81,7 @@ function App() {
                         ...syncItem.options,
                         isPaused: value,
                     },
-                })
+                }),
         );
     }
 
@@ -101,7 +101,7 @@ function App() {
                         ...syncItem.options,
                         isPremiere: value,
                     },
-                })
+                }),
         );
     }
 
@@ -121,7 +121,7 @@ function App() {
                         ...syncItem.options,
                         offset: value,
                     },
-                })
+                }),
         );
     }
 

@@ -1,6 +1,6 @@
-import './style.css';
-import { DiscordTabWithMetadata } from '../types';
 import clsx from 'clsx';
+import { DiscordTabWithMetadata } from '../types';
+import './style.css';
 
 type DiscordItemProps = {
     item: DiscordTabWithMetadata;
@@ -21,7 +21,7 @@ export function DiscordItem({
         <button
             className={clsx(
                 'DiscordItem-wrapper',
-                selected && 'DiscordItem-wrapper-active'
+                selected && 'DiscordItem-wrapper-active',
             )}
             onClick={onClick}
             disabled={disabled}
