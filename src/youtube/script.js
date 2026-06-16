@@ -1,7 +1,7 @@
 async function handleMessage(request, sender, sendResponse) {
     if (request.message === 'fetch_youtube_metadata') {
         try {
-            const metadata = getMetadata();
+            const metadata = await getMetadata();
 
             const url = new URL(window.location);
 
@@ -18,13 +18,15 @@ async function handleMessage(request, sender, sendResponse) {
 
             return;
         } catch (e) {
+            console.error(e);
+
             sendResponse(null);
         }
     }
 
     if (request.message === 'youtube_start') {
         try {
-            const metadata = getMetadata();
+            const metadata = await getMetadata();
 
             const videoElement = await waitForElement('.video-stream');
 
@@ -42,7 +44,9 @@ async function handleMessage(request, sender, sendResponse) {
 
             videoElement.addEventListener('timeupdate', handleTimeUpdate);
         } catch (e) {
-            sendMessage(null);
+            console.error(e);
+
+            sendResponse(null);
         }
     }
 
@@ -61,10 +65,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleMessage(request, sender, sendResponse);
 });
 
-function getMetadata() {
+async function getMetadata() {
     const microformat = JSON.parse(
-        document.querySelector(
-            '#microformat script[type="application/ld+json"]',
+        (
+            await waitForElement(
+                '#microformat script[type="application/ld+json"]',
+            )
         ).textContent,
     );
 
