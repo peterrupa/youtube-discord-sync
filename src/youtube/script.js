@@ -63,6 +63,8 @@ chrome.runtime.sendMessage({
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleMessage(request, sender, sendResponse);
+
+    return true;
 });
 
 async function getMetadata() {
