@@ -3,7 +3,6 @@ import { FaPlus } from 'react-icons/fa';
 import { ClearButton } from '../ClearButton';
 import { SyncItem } from '../SyncItem';
 import { SyncItem as SyncItemType } from '../types';
-import './style.css';
 
 type HomeProps = {
     syncItems: SyncItemType[];
@@ -20,42 +19,47 @@ export function Home({
         onActiveSyncSelect(syncItem);
     }
 
+    const isSyncing = syncItems.length;
+
     return (
-        <>
-            <ClearButton className="add-sync-button" onClick={onAddSyncClick}>
-                <FaPlus />
-            </ClearButton>
-            {syncItems.length === 0 ? (
-                <div>
-                    <h1 className="welcome-text">Welcome!</h1>
-                    <p>
-                        To start, open a YouTube livestream and a Discord tab
-                        with the server channel you wish to sync. Then, click
-                        the + icon on the top right.
-                    </p>
-                    <p>Do note that this works only for Discord web!</p>
-                    <p>
-                        Tip: Upon syncing, Discord will try to scroll up until
-                        it reaches the current timestamp of the video. This
-                        might take a while if there has been many chat messages
-                        ever since. I recommend using Discord's search for
-                        messages that is close to the current timestamp of the
-                        video.
-                    </p>
-                </div>
-            ) : (
-                <div>
-                    <h2>Now syncing</h2>
-                    <div>
-                        {syncItems.map((item) => (
-                            <SyncItem
-                                data={item}
-                                onClick={() => handleSyncItemClick(item)}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
-        </>
+        <div>
+            <div className="flex justify-between mb-4">
+                <h1 className="text-xl font-bold">
+                    {isSyncing ? 'Now syncing' : 'Welcome!'}
+                </h1>
+                <ClearButton onClick={onAddSyncClick}>
+                    <FaPlus />
+                </ClearButton>
+            </div>
+            <div>
+                {isSyncing ? (
+                    syncItems.map((item) => (
+                        <SyncItem
+                            data={item}
+                            onClick={() => handleSyncItemClick(item)}
+                        />
+                    ))
+                ) : (
+                    <>
+                        <p className="mb-2">
+                            To start, open a YouTube livestream and a Discord
+                            tab with the server channel you wish to sync. Then,
+                            click the + icon on the top right.
+                        </p>
+                        <p className="mb-2">
+                            Do note that this works only for Discord web!
+                        </p>
+                        <p>
+                            Tip: Upon syncing, Discord will try to scroll up
+                            until it reaches the current timestamp of the video.
+                            This might take a while if there has been many chat
+                            messages ever since. I recommend using Discord's
+                            search for messages that is close to the current
+                            timestamp of the video.
+                        </p>
+                    </>
+                )}
+            </div>
+        </div>
     );
 }

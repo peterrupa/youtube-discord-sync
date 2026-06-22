@@ -3,9 +3,9 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
 import { useSyncItems } from '../hooks/useSyncItems';
 
+import { Button } from '../Button';
 import { ClearButton } from '../ClearButton';
 import { TimestampUpdateEvent } from '../types';
-import './style.css';
 
 type SyncProps = {
     id: string;
@@ -88,57 +88,57 @@ export function Sync({
     return (
         <div>
             <div
-                className="sync-thumbnail"
+                className="-mx-4 -mt-4 w-[calc(100%+2rem)] h-40 bg-gray-700 bg-cover bg-center relative"
                 style={{
                     backgroundImage: `url(${syncItem.youtubeTab.thumbnail})`,
                 }}
             >
-                <div className="sync-thumbnail-overlay">
-                    <div>
-                        <div>
-                            <ClearButton
-                                className="sync-back-button"
-                                onClick={onBack}
-                            >
-                                <FaArrowLeft />
-                            </ClearButton>
-                            <strong>{syncItem.youtubeTab.title}</strong>
-                        </div>
-
-                        <div>
-                            <div>{syncItem.youtubeTab.channelTitle}</div>
-                        </div>
+                <div className="w-full h-full bg-[rgba(0,0,0,0.75)] absolute top-0 left-0 p-4 flex flex-col justify-between pb-4">
+                    <div className="mb-2 -ml-2">
+                        <ClearButton onClick={onBack}>
+                            <FaArrowLeft />
+                        </ClearButton>
                     </div>
 
-                    <div className="sync-bottom-row">
-                        <div className="sync-discord-item">
+                    <div className="mb-2 text-xs">
+                        <p className="font-bold mb-1">
+                            {syncItem.youtubeTab.title}
+                        </p>
+                        <p>{syncItem.youtubeTab.channelTitle}</p>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2">
+                        <div className="flex items-center">
                             <img
-                                className="DiscordItem-favicon"
+                                className="w-4 mr-2"
                                 src={syncItem.discordTab.favIconUrl}
                             />
-                            <strong>{syncItem.discordTab.channelName}</strong>
+                            <p className="font-bold">
+                                {syncItem.discordTab.channelName}
+                            </p>
                         </div>
                         {currentTimestamp && (
-                            <div className="sync-current-time">
+                            <div className="text-xs">
                                 {new Date(currentTimestamp).toLocaleString()}
                             </div>
                         )}
                     </div>
                 </div>
             </div>
-            <div className="sync-nav-row">
-                <button onClick={togglePause}>
+            <div className="flex justify-between items-center py-4">
+                <Button onClick={togglePause}>
                     {syncItem.options.isPaused ? 'Resume Sync' : 'Pause Sync'}
-                </button>
+                </Button>
 
-                <button onClick={onCancel}>Cancel</button>
+                <Button onClick={onCancel}>Cancel</Button>
             </div>
-            <div className="sync-checklist-row">
+            <div className="flex items-center mb-4">
                 <input
+                    className="mr-2"
                     type="checkbox"
                     onChange={handlePremiereClick}
                     checked={syncItem.options.isPremiere}
-                />{' '}
+                />
                 <span
                     data-tooltip-id="premiere-tooltip"
                     data-tooltip-content="Check this option if you are watching a premiered video instead of a livestream, or else Discord chat can be delayed."
@@ -146,9 +146,10 @@ export function Sync({
                     Premiere Video
                 </span>
             </div>
-            <div className="sync-offset-row">
-                <span className="offset">Offset:</span>
+            <div className="flex items-center">
+                <span className="mr-2">Offset:</span>
                 <input
+                    className="w-15 py-1 px-2 mr-2 bg-[rgba(0,0,0,0.3)]"
                     type="number"
                     onChange={handleOffsetChange}
                     value={syncItem.options.offset}

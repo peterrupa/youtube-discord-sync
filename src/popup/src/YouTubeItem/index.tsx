@@ -1,8 +1,6 @@
 import clsx from 'clsx';
 import { YouTubeMetadata } from '../types';
 
-import './style.css';
-
 type YouTubeItemProps = {
     item: YouTubeMetadata;
     selected: boolean;
@@ -22,8 +20,10 @@ export function YouTubeItem({
     return (
         <button
             className={clsx(
-                'YouTubeItem-wrapper',
-                selected && 'YouTubeItem-wrapper-active',
+                'flex -mx-4 px-4 py-2 text-left',
+                selected && 'bg-green-900!',
+                !disabled && 'hover:bg-[rgba(255,255,255,0.1)] cursor-pointer',
+                disabled && 'hover:bg-none hover:cursor-default && opacity-50',
             )}
             onClick={onClick}
             disabled={disabled}
@@ -31,19 +31,17 @@ export function YouTubeItem({
             <div>
                 <div
                     className={
-                        'YouTubeItem-thumbnail ' + (disabled ? 'disabled' : '')
+                        'w-25 h-14 rounded-xs bg-gray-700 bg-cover bg-center'
                     }
                     style={{
                         backgroundImage: `url(${item.thumbnail})`,
                     }}
                 />
             </div>
-            <div className="YouTubeItem-info-container">
-                <div className="YouTubeItem-title">{item.title}</div>
+            <div className="pl-2">
+                <div className="font-bold mb-1">{item.title}</div>
                 {item.channelTitle && (
-                    <div className="YouTubeItem-channel-title">
-                        {item.channelTitle}
-                    </div>
+                    <div className="text-xs">{item.channelTitle}</div>
                 )}
             </div>
         </button>

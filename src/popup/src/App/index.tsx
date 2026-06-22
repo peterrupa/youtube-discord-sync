@@ -9,7 +9,6 @@ import { Home } from '../Home';
 import { useSyncItems } from '../hooks/useSyncItems';
 import { Selection } from '../Selection';
 import { Sync } from '../Sync';
-import './style.css';
 
 type Page = 'home' | 'selection' | 'sync-details';
 

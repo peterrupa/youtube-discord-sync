@@ -173,8 +173,8 @@ export function Selector({ onSync }: SelectorProps) {
 
     return (
         <div>
-            <h2>YouTube</h2>
-            <div className="items-container">
+            <h2 className="font-bold mb-1">YouTube</h2>
+            <div className="mb-4">
                 {youtubeTabsWithMetadata &&
                     (youtubeTabsWithMetadata.length ? (
                         youtubeTabsWithMetadata.map((tab) => (
@@ -188,14 +188,12 @@ export function Selector({ onSync }: SelectorProps) {
                             />
                         ))
                     ) : (
-                        <div className="items-container-empty-item">
-                            No open YouTube tabs
-                        </div>
+                        <div>No open YouTube tabs</div>
                     ))}
             </div>
 
-            <h2>Discord</h2>
-            <div className="items-container">
+            <h2 className="font-bold mb-1">Discord</h2>
+            <div>
                 {discordTabsWithMetadata &&
                     (discordTabsWithMetadata.length ? (
                         discordTabsWithMetadata.map((tab) => (
@@ -209,9 +207,7 @@ export function Selector({ onSync }: SelectorProps) {
                             />
                         ))
                     ) : (
-                        <div className="items-container-empty-item">
-                            No open Discord tabs
-                        </div>
+                        <div>No open Discord tabs</div>
                     ))}
             </div>
         </div>
