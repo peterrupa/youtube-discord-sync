@@ -3,9 +3,9 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
 import { useSyncItems } from '../hooks/useSyncItems';
 
-import { Button } from '../Button';
-import { ClearButton } from '../ClearButton';
 import { TimestampUpdateEvent } from '../types';
+import { Button } from './Button';
+import { ClearButton } from './ClearButton';
 
 type SyncProps = {
     id: string;

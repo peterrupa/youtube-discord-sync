@@ -5,10 +5,10 @@ import {
     YouTubeTabWithMetadata,
 } from '../types';
 
-import { Home } from '../Home';
 import { useSyncItems } from '../hooks/useSyncItems';
-import { Selection } from '../Selection';
-import { Sync } from '../Sync';
+import { Home } from './Home';
+import { Selection } from './Selection';
+import { Sync } from './Sync';
 
 type Page = 'home' | 'selection' | 'sync-details';
 

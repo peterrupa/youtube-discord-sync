@@ -1,8 +1,8 @@
 import { FaArrowLeft } from 'react-icons/fa';
 
-import { ClearButton } from '../ClearButton';
-import { Selector } from '../Selector';
 import { DiscordTabWithMetadata, YouTubeTabWithMetadata } from '../types';
+import { ClearButton } from './ClearButton';
+import { Selector } from './Selector';
 
 type SelectionProps = {
     onSync: (

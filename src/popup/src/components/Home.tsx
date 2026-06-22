@@ -1,8 +1,8 @@
 import { FaPlus } from 'react-icons/fa';
 
-import { ClearButton } from '../ClearButton';
-import { SyncItem } from '../SyncItem';
 import { SyncItem as SyncItemType } from '../types';
+import { ClearButton } from './ClearButton';
+import { SyncItem } from './SyncItem';
 
 type HomeProps = {
     syncItems: SyncItemType[];

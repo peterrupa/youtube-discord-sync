@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { DiscordItem } from '../DiscordItem';
-import { YouTubeItem } from '../YouTubeItem';
 import { useSyncItems } from '../hooks/useSyncItems';
 import { useTabs } from '../hooks/useTabs';
 import {
@@ -10,6 +8,8 @@ import {
     YouTubeMetadata,
     YouTubeTabWithMetadata,
 } from '../types';
+import { DiscordItem } from './DiscordItem';
+import { YouTubeItem } from './YoutubeItem';
 
 type SelectorProps = {
     onSync: (
