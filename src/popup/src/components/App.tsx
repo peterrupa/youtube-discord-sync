@@ -6,9 +6,9 @@ import {
 } from '../types';
 
 import { useSyncItems } from '../hooks/useSyncItems';
-import { Home } from './Home';
 import { Selection } from './Selection';
 import { Sync } from './Sync';
+import { SyncList } from './SyncList';
 
 type Page = 'home' | 'selection' | 'sync-details';
 
@@ -160,9 +160,13 @@ function App() {
         return <Selection onSync={initializeSyncing} onBack={handleBack} />;
     }
 
+    if (!syncItems.length) {
+        return <Selection onSync={initializeSyncing} />;
+    }
+
     return (
-        <Home
-            syncItems={syncItems ?? []}
+        <SyncList
+            syncItems={syncItems}
             onAddSyncClick={handleAddSync}
             onActiveSyncSelect={handleActiveSyncSelect}
         />
