@@ -28,7 +28,7 @@ export function DiscordItem({
             disabled={disabled}
         >
             <img className="w-4 mr-2" src={item.favIconUrl} />
-            {`${item.serverName} - ${item.channelName}`}
+            {`${item.serverName ? `${item.serverName} - ` : ''}${item.channelName}`}
         </button>
     );
 }
