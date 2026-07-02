@@ -31,6 +31,20 @@ async function handleMessage(request, sender, sendResponse) {
             const videoElement = await waitForElement('.video-stream');
 
             function handleTimeUpdate(event) {
+                // check if this is from the same video since it's hard to properly remove the event listener when navigating. if it's not, then remove the listener
+                const videoIdFromUrl = new URL(
+                    window.location,
+                ).searchParams.get('v');
+
+                if (videoIdFromUrl !== metadata.id) {
+                    videoElement.removeEventListener(
+                        'timeupdate',
+                        handleTimeUpdate,
+                    );
+
+                    return;
+                }
+
                 chrome.runtime.sendMessage({
                     message: 'youtube_timeupdate',
                     startDateTime: metadata.startDateTime,
@@ -76,6 +90,7 @@ async function getMetadata() {
         ).textContent,
     );
 
+    const id = new URL(microformat['@id']).searchParams.get('v');
     const title = microformat.name;
     const thumbnail = microformat.thumbnailUrl?.[0];
     const channelTitle = microformat.author;
@@ -91,6 +106,7 @@ async function getMetadata() {
     }
 
     return {
+        id,
         title,
         channelTitle,
         thumbnail,
