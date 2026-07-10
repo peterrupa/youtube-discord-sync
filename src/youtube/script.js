@@ -1,96 +1,164 @@
-async function handleMessage(request, sender, sendResponse) {
-    if (request.message === 'fetch_youtube_metadata') {
-        try {
-            const metadata = await getMetadata();
+async function run() {
+    let tabsToSync = [];
 
-            const url = new URL(window.location);
+    const microformatElement = await waitForElement('#microformat');
+    const videoStreamElement = await waitForElement('.video-stream');
 
-            const id =
-                url.searchParams.get('v') || url.pathname.split('/').pop();
+    let metadata = getMetadata();
 
-            sendResponse({
-                id,
-                title: metadata.title,
-                channelTitle: metadata.channelTitle,
-                thumbnail: metadata.thumbnail,
-                isLivestream: metadata.isLivestream,
-            });
-
-            return;
-        } catch (e) {
-            console.error(e);
-
-            sendResponse(null);
+    function handleMessage(request, sender, sendResponse) {
+        if (request.message === 'fetch_info') {
+            sendResponse({ metadata, activeSyncs: tabsToSync });
         }
-    }
 
-    if (request.message === 'youtube_start') {
-        try {
-            const metadata = await getMetadata();
+        if (request.message === 'sync_start') {
+            const { tabId } = request;
 
-            const videoElement = await waitForElement('.video-stream');
+            syncStart(tabId);
+        }
 
-            function handleTimeUpdate(event) {
-                // check if this is from the same video since it's hard to properly remove the event listener when navigating. if it's not, then remove the listener
-                const videoIdFromUrl = new URL(
-                    window.location,
-                ).searchParams.get('v');
+        if (request.message === 'sync_stop') {
+            const { tabId } = request;
 
-                if (videoIdFromUrl !== metadata.id) {
-                    videoElement.removeEventListener(
-                        'timeupdate',
-                        handleTimeUpdate,
-                    );
+            syncStop(tabId);
+        }
 
-                    return;
+        if (request.message === 'sync_option_update') {
+            const { tabId, options } = request;
+
+            tabsToSync = tabsToSync.map((tab) => {
+                if (tab.tabId === tabId) {
+                    return {
+                        ...tab,
+                        options: {
+                            ...tab.options,
+                            ...options,
+                        },
+                    };
                 }
 
-                chrome.runtime.sendMessage({
-                    message: 'youtube_timeupdate',
-                    startDateTime: metadata.startDateTime,
-                    endDateTime: metadata.endDateTime,
-                    currentTime: event.target.currentTime,
-                    duration: videoElement.duration,
-                });
-            }
-
-            console.log('YouTube Discord VOD initialized.');
-
-            videoElement.addEventListener('timeupdate', handleTimeUpdate);
-        } catch (e) {
-            console.error(e);
-
-            sendResponse(null);
+                return tab;
+            });
         }
     }
 
-    if (request.message === 'youtube_cancel') {
-        console.log('YouTube Discord VOD stopped.');
+    chrome.runtime.onMessage.addListener(handleMessage);
 
-        videoElement.removeEventListener('timeupdate', handleTimeUpdate);
+    if (!microformatElement || !videoStreamElement) {
+        return;
+    }
+
+    // always send a timestamp update whenever the main video element is played
+    function handleTimeUpdate(event) {
+        tabsToSync.forEach((tab) => {
+            if (tab.options.isPaused) {
+                return;
+            }
+
+            const currentTime = event.target.currentTime;
+            const duration = videoStreamElement.duration;
+
+            let startDateTime = metadata.startDateTime;
+            let endDateTime = metadata.endDateTime;
+
+            startDateTime = new Date(startDateTime);
+            endDateTime = new Date(endDateTime);
+
+            if (tab.options.isPremiere) {
+                // startDateTime does not include the countdown timer
+                // Instead, lets figure out the startDateTime by using the video length and endStartDate
+                // Why not use that for actual livestreams? I don't know, when I do this for livestreams, there's a noticable delay in chat
+                startDateTime = new Date(
+                    endDateTime.getTime() - duration * 1000,
+                );
+            }
+
+            const timestamp = new Date(
+                startDateTime.getTime() +
+                    (currentTime - tab.options.offset) * 1000,
+            ).toISOString();
+
+            chrome.runtime.sendMessage({
+                message: 'video_timeupdate',
+                tabId: tab.tabId,
+                timestamp,
+            });
+        });
+    }
+
+    videoStreamElement.addEventListener('timeupdate', handleTimeUpdate);
+
+    // everytime the metadata changes, update the metadata internal state
+    const microformatObserver = new MutationObserver((mutations) => {
+        metadata = getMetadata();
+    });
+
+    microformatObserver.observe(microformatElement, {
+        childList: true,
+        subtree: true,
+    });
+
+    // reset the metadata information when navigating away from a video, and close any ongoing syncs
+    const videoStreamObserver = new MutationObserver((mutations) => {
+        if (!videoStreamElement.hasAttribute('src')) {
+            metadata = null;
+
+            clearAllSync();
+        }
+    });
+
+    videoStreamObserver.observe(videoStreamElement, { attributes: true });
+
+    function syncStart(tabId) {
+        tabsToSync.push({
+            tabId,
+            options: {
+                offset: 3,
+                isPaused: false,
+                isPremiere: false,
+            },
+        });
+    }
+
+    function syncStop(tabId) {
+        tabsToSync = tabsToSync.filter((tab) => tab.tabId !== tabId);
+    }
+
+    function clearAllSync() {
+        tabsToSync.forEach((tab) => {
+            chrome.runtime.sendMessage({
+                message: 'sync_stop',
+                tabId: tab.tabId,
+            });
+        });
+
+        tabsToSync = [];
     }
 }
 
-chrome.runtime.sendMessage({
-    message: 'youtube_active',
-});
+run();
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    handleMessage(request, sender, sendResponse);
-
-    return true;
-});
-
-async function getMetadata() {
-    const microformat = JSON.parse(
-        (
-            await waitForElement(
-                '#microformat script[type="application/ld+json"]',
-            )
-        ).textContent,
+function getMetadata() {
+    const scriptElement = document.querySelector(
+        '#microformat script[type="application/ld+json"]',
     );
 
-    const id = new URL(microformat['@id']).searchParams.get('v');
+    if (!scriptElement) {
+        return null;
+    }
+
+    const microformat = JSON.parse(scriptElement.textContent);
+
+    const url = new URL(microformat['@id']);
+
+    let id = null;
+
+    if (url.pathname.includes('/live/')) {
+        id = url.pathname.split('/live/')[1];
+    } else {
+        id = url.searchParams.get('v');
+    }
+
     const title = microformat.name;
     const thumbnail = microformat.thumbnailUrl?.[0];
     const channelTitle = microformat.author;
@@ -116,13 +184,13 @@ async function getMetadata() {
     };
 }
 
-const WAIT_FOR_ELEMENT_DURATION = 2000;
-
 // https://stackoverflow.com/questions/5525071/how-to-wait-until-an-element-exists
 function waitForElement(selector) {
+    const WAIT_FOR_ELEMENT_DURATION = 2000;
+
     return new Promise((resolve, reject) => {
         const timeoutCountdown = setTimeout(() => {
-            reject(`Element ${selector} not found.`);
+            resolve(null);
         }, WAIT_FOR_ELEMENT_DURATION);
 
         if (document.querySelector(selector)) {

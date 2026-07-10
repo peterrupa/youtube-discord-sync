@@ -1,14 +1,13 @@
 import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
-import { useSyncItems } from '../hooks/useSyncItems';
 
-import { TimestampUpdateEvent } from '../types';
+import { SyncItem, TimestampUpdateEvent } from '../types';
 import { Button } from './Button';
 import { ClearButton } from './ClearButton';
 
 type SyncProps = {
-    id: string;
+    item: SyncItem;
     onBack: () => void;
     onPauseChange: (value: boolean) => void;
     onCancel: () => void;
@@ -17,23 +16,17 @@ type SyncProps = {
 };
 
 export function Sync({
-    id,
+    item,
     onBack,
     onPauseChange,
     onCancel,
     onPremiereChange,
     onOffsetChange,
 }: SyncProps) {
-    const [currentTimestamp, setCurrentTimestamp] = useState<number | null>(
-        null,
-    );
-
-    const [syncItems] = useSyncItems();
-
-    const syncItem = syncItems.find((item) => item.id === id);
+    const [currentTimestamp, setCurrentTimestamp] = useState<Date | null>(null);
 
     function togglePause() {
-        onPauseChange(!syncItem?.options.isPaused);
+        onPauseChange(!item.options.isPaused);
     }
 
     function handlePremiereClick(e: SyntheticEvent<HTMLInputElement>) {
@@ -56,16 +49,11 @@ export function Sync({
             typeof request === 'object' &&
             'message' in request &&
             typeof request.message === 'string' &&
-            request.message === 'youtube_timeupdate'
+            request.message === 'video_timeupdate'
         ) {
             const currentRequest = request as TimestampUpdateEvent;
 
-            const startTimestamp = new Date(
-                currentRequest.startDateTime,
-            ).getTime();
-            const currentTimeInMilliseconds = currentRequest.currentTime * 1000;
-
-            setCurrentTimestamp(startTimestamp + currentTimeInMilliseconds);
+            setCurrentTimestamp(new Date(currentRequest.timestamp));
         }
     }
 
@@ -79,7 +67,7 @@ export function Sync({
 
     useEffect(listenForTimestampUpdate, []);
 
-    if (!syncItem) {
+    if (!item) {
         onBack();
 
         return;
@@ -90,7 +78,7 @@ export function Sync({
             <div
                 className="-mx-4 -mt-4 w-[calc(100%+2rem)] h-40 bg-gray-700 bg-cover bg-center relative"
                 style={{
-                    backgroundImage: `url(${syncItem.youtubeTab.thumbnail})`,
+                    backgroundImage: `url(${item.youtubeTab.metadata.thumbnail})`,
                 }}
             >
                 <div className="w-full h-full bg-[rgba(0,0,0,0.75)] absolute top-0 left-0 p-4 flex flex-col justify-between pb-4">
@@ -102,24 +90,24 @@ export function Sync({
 
                     <div className="mb-2 text-xs">
                         <p className="font-bold mb-1">
-                            {syncItem.youtubeTab.title}
+                            {item.youtubeTab.metadata.title}
                         </p>
-                        <p>{syncItem.youtubeTab.channelTitle}</p>
+                        <p>{item.youtubeTab.metadata.channelTitle}</p>
                     </div>
 
                     <div className="flex justify-between items-center py-2">
                         <div className="flex items-center">
                             <img
                                 className="w-4 mr-2"
-                                src={syncItem.discordTab.favIconUrl}
+                                src={item.discordTab.metadata.favIconUrl}
                             />
                             <p className="font-bold">
-                                {syncItem.discordTab.channelName}
+                                {item.discordTab.metadata.channelName}
                             </p>
                         </div>
                         {currentTimestamp && (
                             <div className="text-xs">
-                                {new Date(currentTimestamp).toLocaleString()}
+                                {currentTimestamp.toLocaleString()}
                             </div>
                         )}
                     </div>
@@ -127,7 +115,7 @@ export function Sync({
             </div>
             <div className="flex justify-between items-center py-4">
                 <Button onClick={togglePause}>
-                    {syncItem.options.isPaused ? 'Resume Sync' : 'Pause Sync'}
+                    {item.options.isPaused ? 'Resume Sync' : 'Pause Sync'}
                 </Button>
 
                 <Button onClick={onCancel}>Cancel</Button>
@@ -137,7 +125,7 @@ export function Sync({
                     className="mr-2"
                     type="checkbox"
                     onChange={handlePremiereClick}
-                    checked={syncItem.options.isPremiere}
+                    checked={item.options.isPremiere}
                 />
                 <span
                     data-tooltip-id="premiere-tooltip"
@@ -152,7 +140,7 @@ export function Sync({
                     className="w-15 py-1 px-2 mr-2 bg-[rgba(0,0,0,0.3)]"
                     type="number"
                     onChange={handleOffsetChange}
-                    value={syncItem.options.offset}
+                    value={item.options.offset}
                 />
                 <span> seconds</span>
             </div>

@@ -1,18 +1,24 @@
 import { FaArrowLeft } from 'react-icons/fa';
 
-import { DiscordTabWithMetadata, YouTubeTabWithMetadata } from '../types';
+import { DiscordTab, SyncItem, YouTubeTab } from '../types';
 import { ClearButton } from './ClearButton';
 import { Selector } from './Selector';
 
 type SelectionProps = {
-    onSync: (
-        youtubeTab: YouTubeTabWithMetadata,
-        discordTab: DiscordTabWithMetadata,
-    ) => void;
+    youtubeTabs: YouTubeTab[];
+    discordTabs: DiscordTab[];
+    syncItems: SyncItem[];
+    onSync: (youtubeTab: YouTubeTab, discordTab: DiscordTab) => void;
     onBack?: () => void;
 };
 
-export function Selection({ onSync, onBack }: SelectionProps) {
+export function Selection({
+    youtubeTabs,
+    discordTabs,
+    syncItems,
+    onSync,
+    onBack,
+}: SelectionProps) {
     return (
         <div>
             {onBack && (
@@ -22,7 +28,12 @@ export function Selection({ onSync, onBack }: SelectionProps) {
                     </ClearButton>
                 </div>
             )}
-            <Selector onSync={onSync} />
+            <Selector
+                youtubeTabs={youtubeTabs}
+                discordTabs={discordTabs}
+                syncItems={syncItems}
+                onSync={onSync}
+            />
         </div>
     );
 }

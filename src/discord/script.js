@@ -1,18 +1,10 @@
 async function run() {
-    chrome.runtime.sendMessage({
-        message: 'discord_active',
-    });
+    let tabsToSync = [];
 
-    chrome.runtime.onMessage.addListener((request) => {
-        if (request.message === 'discord_start') {
-            console.log('YouTube Discord VOD initialized.');
-        }
+    function handleMessage(request, sender, sendResponse) {
+        if (request.message === 'video_timeupdate') {
+            const { timestamp } = request;
 
-        if (request.message === 'discord_cancel') {
-            console.log('YouTube Discord VOD stopped.');
-        }
-
-        if (request.message === 'discord_timeupdate') {
             const scroller = document.querySelector(
                 "main div[class*='scroller']",
             );
@@ -28,7 +20,7 @@ async function run() {
             ).filter((chatElement) => {
                 return (
                     new Date(chatElement.getAttribute('datetime')) <
-                    new Date(request.timestamp)
+                    new Date(timestamp)
                 );
             });
 
@@ -54,7 +46,29 @@ async function run() {
 
             scroller.scrollBy({ behavior: 'instant', top: y });
         }
-    });
+
+        if (request.message === 'sync_start') {
+            syncStart(request.tabId);
+        }
+
+        if (request.message === 'sync_stop') {
+            syncStop(request.tabId);
+        }
+
+        if (request.message === 'fetch_info') {
+            sendResponse({ activeSyncs: tabsToSync });
+        }
+    }
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+
+    function syncStart(tabId) {
+        tabsToSync.push({ tabId });
+    }
+
+    function syncStop(tabId) {
+        tabsToSync = tabsToSync.filter((tab) => tab.tabId !== tabId);
+    }
 }
 
 run();

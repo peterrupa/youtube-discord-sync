@@ -1,95 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 
-import { useSyncItems } from '../hooks/useSyncItems';
-import { useTabs } from '../hooks/useTabs';
-import {
-    DiscordTabWithMetadata,
-    Tab,
-    YouTubeMetadata,
-    YouTubeTabWithMetadata,
-} from '../types';
+import { DiscordTab, SyncItem, YouTubeTab } from '../types';
 import { DiscordItem } from './DiscordItem';
 import { YouTubeItem } from './YoutubeItem';
 
 type SelectorProps = {
-    onSync: (
-        youtubeTab: YouTubeTabWithMetadata,
-        discordTab: DiscordTabWithMetadata,
-    ) => void;
+    youtubeTabs: YouTubeTab[];
+    discordTabs: DiscordTab[];
+    syncItems: SyncItem[];
+    onSync: (youtubeTab: YouTubeTab, discordTab: DiscordTab) => void;
 };
 
-export function Selector({ onSync }: SelectorProps) {
-    const tabs = useTabs();
-    const [youtubeMetadataMap, setYoutubeMetadataMap] = useState<Record<
-        string,
-        YouTubeMetadata
-    > | null>(null);
+export function Selector({
+    youtubeTabs,
+    discordTabs,
+    syncItems,
+    onSync,
+}: SelectorProps) {
     const [selectedYouTubeTab, setSelectedYouTubeTab] =
-        useState<YouTubeTabWithMetadata | null>(null);
+        useState<YouTubeTab | null>(null);
     const [selectedDiscordTab, setSelectedDiscordTab] =
-        useState<DiscordTabWithMetadata | null>(null);
-    const [syncItems = []] = useSyncItems();
-
-    const youtubeTabs = useMemo<Tab[] | null>(() => {
-        if (!tabs) {
-            return null;
-        }
-
-        return tabs.filter((tab) => tab.type === 'youtube');
-    }, [tabs]);
-
-    const discordTabs = useMemo<Tab[] | null>(() => {
-        if (!tabs) {
-            return null;
-        }
-
-        return tabs.filter((tab) => tab.type === 'discord');
-    }, [tabs]);
-
-    const youtubeTabsWithMetadata = useMemo<
-        YouTubeTabWithMetadata[] | null
-    >(() => {
-        if (!youtubeMetadataMap) {
-            return null;
-        }
-
-        return (
-            youtubeTabs
-                ?.map((tab) => {
-                    const defaultMetadata: YouTubeMetadata = {
-                        id: '',
-                        title: tab.title,
-                        thumbnail: null,
-                        channelTitle: null,
-                        isLivestream: false,
-                    };
-
-                    return {
-                        ...(youtubeMetadataMap[getIDFromURL(tab.url)] ??
-                            defaultMetadata),
-                        tabId: tab.tabId,
-                    };
-                })
-                .filter((tab) => tab.isLivestream) ?? null
-        );
-    }, [youtubeMetadataMap, youtubeTabs]);
-
-    const discordTabsWithMetadata = useMemo<
-        DiscordTabWithMetadata[] | null
-    >(() => {
-        return (
-            discordTabs?.map((tab) => {
-                const [, channelName, serverName] = tab.title.split(' | ');
-
-                return {
-                    tabId: tab.tabId,
-                    favIconUrl: tab.favIconUrl,
-                    serverName,
-                    channelName,
-                };
-            }) ?? null
-        );
-    }, [discordTabs]);
+        useState<DiscordTab | null>(null);
 
     const isTabSyncing = useCallback(
         (tabId: number) => {
@@ -108,52 +39,7 @@ export function Selector({ onSync }: SelectorProps) {
         [syncItems],
     );
 
-    function updateYouTubeMetadataMap() {
-        async function run() {
-            try {
-                if (!youtubeTabs) {
-                    return;
-                }
-
-                if (!youtubeTabs.length) {
-                    setYoutubeMetadataMap({});
-                }
-
-                const newMetadata: YouTubeMetadata[] =
-                    await fetchYouTubeMetadata(
-                        youtubeTabs.map((tab) => tab.tabId),
-                    );
-
-                const newMetadataMap = newMetadata.reduce(
-                    (acc, current) => ({ ...acc, [current.id]: current }),
-                    {},
-                );
-
-                setYoutubeMetadataMap((youtubeMetadataMap) => ({
-                    ...youtubeMetadataMap,
-                    ...newMetadataMap,
-                }));
-            } catch (e) {
-                console.warn('Failed fetching YouTube metadata');
-                console.error(e);
-            }
-        }
-
-        run();
-    }
-
-    async function fetchYouTubeMetadata(
-        tabIDs: number[],
-    ): Promise<YouTubeMetadata[]> {
-        const response = await chrome.runtime.sendMessage({
-            message: 'fetch_youtube_metadata',
-            tabIDs,
-        });
-
-        return response;
-    }
-
-    function handleYouTubeTabSelect(tab: YouTubeTabWithMetadata): void {
+    function handleYouTubeTabSelect(tab: YouTubeTab): void {
         setSelectedYouTubeTab(tab);
 
         if (selectedDiscordTab) {
@@ -161,7 +47,7 @@ export function Selector({ onSync }: SelectorProps) {
         }
     }
 
-    function handleDiscordTabSelect(tab: DiscordTabWithMetadata) {
+    function handleDiscordTabSelect(tab: DiscordTab) {
         setSelectedDiscordTab(tab);
 
         if (selectedYouTubeTab) {
@@ -169,17 +55,20 @@ export function Selector({ onSync }: SelectorProps) {
         }
     }
 
-    useEffect(updateYouTubeMetadataMap, [youtubeTabs]);
+    // defer rendering until data is loaded
+    if (!youtubeTabs || !discordTabs) {
+        return;
+    }
 
     return (
         <div>
             <h2 className="font-bold mb-1">YouTube</h2>
             <div className="mb-4">
-                {youtubeTabsWithMetadata &&
-                    (youtubeTabsWithMetadata.length ? (
-                        youtubeTabsWithMetadata.map((tab) => (
+                {youtubeTabs &&
+                    (youtubeTabs.length ? (
+                        youtubeTabs.map((tab) => (
                             <YouTubeItem
-                                item={tab}
+                                tab={tab}
                                 onClick={() => handleYouTubeTabSelect(tab)}
                                 selected={
                                     selectedYouTubeTab?.tabId === tab.tabId
@@ -194,11 +83,11 @@ export function Selector({ onSync }: SelectorProps) {
 
             <h2 className="font-bold mb-1">Discord</h2>
             <div>
-                {discordTabsWithMetadata &&
-                    (discordTabsWithMetadata.length ? (
-                        discordTabsWithMetadata.map((tab) => (
+                {discordTabs &&
+                    (discordTabs.length ? (
+                        discordTabs.map((tab) => (
                             <DiscordItem
-                                item={tab}
+                                tab={tab}
                                 onClick={() => handleDiscordTabSelect(tab)}
                                 selected={
                                     selectedDiscordTab?.tabId === tab.tabId
@@ -212,17 +101,4 @@ export function Selector({ onSync }: SelectorProps) {
             </div>
         </div>
     );
-}
-
-function getIDFromURL(url: string): string {
-    const urlObject = new URL(url);
-
-    const id =
-        urlObject.searchParams.get('v') || urlObject.pathname.split('/').pop();
-
-    if (!id) {
-        throw new Error('ID not found in URL');
-    }
-
-    return id;
 }

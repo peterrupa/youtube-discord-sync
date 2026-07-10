@@ -1,8 +1,8 @@
 import clsx from 'clsx';
-import { DiscordTabWithMetadata } from '../types';
+import { DiscordTab } from '../types';
 
 type DiscordItemProps = {
-    item: DiscordTabWithMetadata;
+    tab: DiscordTab;
     selected: boolean;
     onClick: () => void;
     disabled?: boolean;
@@ -11,7 +11,7 @@ type DiscordItemProps = {
 // @TODO: handle overflow
 
 export function DiscordItem({
-    item,
+    tab,
     selected,
     onClick,
     disabled,
@@ -27,8 +27,8 @@ export function DiscordItem({
             onClick={onClick}
             disabled={disabled}
         >
-            <img className="w-4 mr-2" src={item.favIconUrl} />
-            {`${item.serverName ? `${item.serverName} - ` : ''}${item.channelName}`}
+            <img className="w-4 mr-2" src={tab.metadata.favIconUrl} />
+            {`${tab.metadata.serverName ? `${tab.metadata.serverName} - ` : ''}${tab.metadata.channelName}`}
         </button>
     );
 }

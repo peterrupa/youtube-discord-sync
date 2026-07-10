@@ -14,12 +14,15 @@ export function SyncItem({ data, onClick }: SyncItemProps) {
             <div className="flex-1">
                 <img
                     className="w-30 h-17 rounded-xs"
-                    src={data.youtubeTab.thumbnail || ''}
+                    src={data.youtubeTab.metadata.thumbnail || ''}
                 />
             </div>
             <div className="flex-1 flex items-center h-full">
-                <img className="w-4 mr-2" src={data.discordTab.favIconUrl} />
-                <span>{data.discordTab.channelName}</span>
+                <img
+                    className="w-4 mr-2"
+                    src={data.discordTab.metadata.favIconUrl}
+                />
+                <span>{data.discordTab.metadata.channelName}</span>
             </div>
         </button>
     );

@@ -1,18 +1,16 @@
 import clsx from 'clsx';
-import { YouTubeMetadata } from '../types';
+import { YouTubeTab } from '../types';
 
 type YouTubeItemProps = {
-    item: YouTubeMetadata;
+    tab: YouTubeTab;
     selected: boolean;
     onClick: () => void;
     disabled?: boolean;
 };
 
 // @TODO: handle overflow
-// @TODO: add skeleton state
-
 export function YouTubeItem({
-    item,
+    tab,
     selected,
     onClick,
     disabled,
@@ -34,14 +32,14 @@ export function YouTubeItem({
                         'w-25 h-14 rounded-xs bg-gray-700 bg-cover bg-center'
                     }
                     style={{
-                        backgroundImage: `url(${item.thumbnail})`,
+                        backgroundImage: `url(${tab.metadata.thumbnail})`,
                     }}
                 />
             </div>
             <div className="pl-2">
-                <div className="font-bold mb-1">{item.title}</div>
-                {item.channelTitle && (
-                    <div className="text-xs">{item.channelTitle}</div>
+                <div className="font-bold mb-1">{tab.metadata.title}</div>
+                {tab.metadata.channelTitle && (
+                    <div className="text-xs">{tab.metadata.channelTitle}</div>
                 )}
             </div>
         </button>

@@ -14,21 +14,26 @@ export type YouTubeMetadata = {
     isLivestream: boolean;
 };
 
-export type YouTubeTabWithMetadata = YouTubeMetadata & {
+export type YouTubeTab = {
     tabId: number;
+    metadata: YouTubeMetadata;
+    activeSyncs: YouTubeSyncState[];
 };
 
-export type DiscordTabWithMetadata = {
+export type DiscordTab = {
     tabId: number;
-    favIconUrl: string;
-    serverName: string;
-    channelName: string;
+    metadata: {
+        favIconUrl: string;
+        serverName: string;
+        channelName: string;
+    };
+    activeSyncs: SyncState[];
 };
 
 export type SyncItem = {
     id: string;
-    youtubeTab: YouTubeTabWithMetadata;
-    discordTab: DiscordTabWithMetadata;
+    youtubeTab: YouTubeTab;
+    discordTab: DiscordTab;
     options: {
         isPaused: boolean;
         isPremiere: boolean;
@@ -41,9 +46,18 @@ export type MessageEvent = {
 };
 
 export type TimestampUpdateEvent = MessageEvent & {
-    message: 'youtube_timeupdate';
-    startDateTime: string;
-    endDateTime: string;
-    currentTime: number;
-    duration: number;
+    message: 'video_timeupdate';
+    timestamp: string;
+};
+
+export type SyncState = {
+    tabId: number;
+};
+
+export type YouTubeSyncState = SyncState & {
+    options: {
+        isPaused: boolean;
+        isPremiere: boolean;
+        offset: number;
+    };
 };
