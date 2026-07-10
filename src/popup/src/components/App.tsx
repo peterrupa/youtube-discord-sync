@@ -87,6 +87,11 @@ function App() {
                     continue;
                 }
 
+                if (!tab.title!.includes(' | ')) {
+                    // page is not yet fully loaded. ignore
+                    continue;
+                }
+
                 const [, channelName, serverName] = tab.title!.split(' | ');
 
                 _discordTabs.push({
