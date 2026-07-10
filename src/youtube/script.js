@@ -167,6 +167,12 @@ function getMetadata() {
 
     const isLivestream = publication.isLiveBroadcast ?? false;
     const startDateTime = new Date(publication.startDate);
+
+    if (!publication.endDate) {
+        // this is an ongoing livestream. do not show this on the list
+        return null;
+    }
+
     const endDateTime = new Date(publication.endDate);
 
     if (!title || !channelTitle || !startDateTime) {
