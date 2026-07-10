@@ -63,7 +63,6 @@ function App() {
         },
     });
 
-    // @TODO: ignore discord tabs that haven't fully loaded yet
     const { data: discordTabs } = useQuery<DiscordTab[]>({
         queryKey: ['discordTabs'],
         queryFn: async () => {
