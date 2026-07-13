@@ -12,6 +12,7 @@ export type YouTubeMetadata = {
     thumbnail: string | null;
     channelTitle: string | null;
     isLivestream: boolean;
+    isPremiere: boolean;
 };
 
 export type YouTubeTab = {
@@ -36,7 +37,6 @@ export type SyncItem = {
     discordTab: DiscordTab;
     options: {
         isPaused: boolean;
-        isPremiere: boolean;
         offset: number;
     };
 };

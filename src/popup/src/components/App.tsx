@@ -30,21 +30,17 @@ function App() {
                 ],
             });
 
-            console.log({ youtubeTabsRaw });
-
             for (const tab of youtubeTabsRaw) {
                 if (!tab.id) {
                     continue;
                 }
 
-                console.log('fetching info for tab ', tab.id);
                 const response = (await chrome.tabs.sendMessage(tab.id, {
                     message: 'fetch_info',
                 })) as {
                     metadata: YouTubeMetadata | null;
                     activeSyncs: YouTubeSyncState[];
                 } | null;
-                console.log({ response });
 
                 if (!response) {
                     continue;
@@ -75,8 +71,6 @@ function App() {
             const discordTabsRaw = await chrome.tabs.query({
                 url: 'https://discord.com/channels/*/*',
             });
-
-            console.log({ discordTabsRaw });
 
             for (const tab of discordTabsRaw) {
                 if (!tab.id) {
@@ -244,8 +238,6 @@ function App() {
         setSelectedSyncItemId(syncItem.id);
         setCurrentPage('sync-details');
     }
-
-    console.log({ youtubeTabs, discordTabs });
 
     if (!youtubeTabs || !discordTabs) {
         return <div></div>;

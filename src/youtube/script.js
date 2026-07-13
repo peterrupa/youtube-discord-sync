@@ -64,7 +64,7 @@ async function run() {
             startDateTime = new Date(startDateTime);
             endDateTime = new Date(endDateTime);
 
-            if (tab.options.isPremiere) {
+            if (metadata.isPremiere) {
                 // startDateTime does not include the countdown timer
                 // Instead, lets figure out the startDateTime by using the video length and endStartDate
                 // Why not use that for actual livestreams? I don't know, when I do this for livestreams, there's a noticable delay in chat
@@ -168,6 +168,14 @@ function getMetadata() {
     const isLivestream = publication.isLiveBroadcast ?? false;
     const startDateTime = new Date(publication.startDate);
 
+    // to determine whether this is a premiere or a regular livestream, just look for the "Premiered" keyword somewhere in the page
+
+    const infoSpans = document.querySelectorAll('#info-container span');
+
+    const isPremiere = infoSpans.some((span) =>
+        span.textContent.includes('Premiered'),
+    );
+
     if (!publication.endDate) {
         // this is an ongoing livestream. do not show this on the list
         return null;
@@ -187,6 +195,7 @@ function getMetadata() {
         isLivestream,
         startDateTime,
         endDateTime,
+        isPremiere,
     };
 }
 
