@@ -163,7 +163,7 @@ function getMetadata() {
     const thumbnail = microformat.thumbnailUrl?.[0];
     const channelTitle = microformat.author;
 
-    const publication = microformat.publication[0] ?? {};
+    const publication = microformat.publication?.[0] ?? {};
 
     const isLivestream = publication.isLiveBroadcast ?? false;
     const startDateTime = new Date(publication.startDate);
