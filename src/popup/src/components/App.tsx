@@ -202,18 +202,6 @@ function App() {
         queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
     }
 
-    function handlePremiereChange(syncItem: SyncItem, value: boolean) {
-        chrome.tabs.sendMessage(syncItem.youtubeTab.tabId, {
-            message: 'sync_option_update',
-            tabId: syncItem.discordTab.tabId,
-            options: {
-                isPremiere: value,
-            },
-        });
-
-        queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
-    }
-
     function handleOffsetChange(syncItem: SyncItem, value: number) {
         chrome.tabs.sendMessage(syncItem.youtubeTab.tabId, {
             message: 'sync_option_update',
@@ -252,9 +240,6 @@ function App() {
                     handlePauseChange(selectedSyncItem, value)
                 }
                 onCancel={() => handleSyncCancel(selectedSyncItem)}
-                onPremiereChange={(value) =>
-                    handlePremiereChange(selectedSyncItem, value)
-                }
                 onOffsetChange={(value) =>
                     handleOffsetChange(selectedSyncItem, value)
                 }

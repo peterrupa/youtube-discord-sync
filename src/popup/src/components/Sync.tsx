@@ -1,4 +1,4 @@
-import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
 
@@ -11,7 +11,6 @@ type SyncProps = {
     onBack: () => void;
     onPauseChange: (value: boolean) => void;
     onCancel: () => void;
-    onPremiereChange: (value: boolean) => void;
     onOffsetChange: (value: number) => void;
 };
 
@@ -20,21 +19,12 @@ export function Sync({
     onBack,
     onPauseChange,
     onCancel,
-    onPremiereChange,
     onOffsetChange,
 }: SyncProps) {
     const [currentTimestamp, setCurrentTimestamp] = useState<Date | null>(null);
 
     function togglePause() {
         onPauseChange(!item.options.isPaused);
-    }
-
-    function handlePremiereClick(e: SyntheticEvent<HTMLInputElement>) {
-        const target = e.target as typeof e.target & {
-            checked: boolean;
-        };
-
-        onPremiereChange(target.checked);
     }
 
     function handleOffsetChange(e: ChangeEvent<HTMLInputElement>) {
@@ -119,20 +109,6 @@ export function Sync({
                 </Button>
 
                 <Button onClick={onCancel}>Cancel</Button>
-            </div>
-            <div className="flex items-center mb-4">
-                <input
-                    className="mr-2"
-                    type="checkbox"
-                    onChange={handlePremiereClick}
-                    checked={item.options.isPremiere}
-                />
-                <span
-                    data-tooltip-id="premiere-tooltip"
-                    data-tooltip-content="Check this option if you are watching a premiered video instead of a livestream, or else Discord chat can be delayed."
-                >
-                    Premiere Video
-                </span>
             </div>
             <div className="flex items-center">
                 <span className="mr-2">Offset:</span>

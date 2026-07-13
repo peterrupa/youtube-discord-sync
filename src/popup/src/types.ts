@@ -57,7 +57,6 @@ export type SyncState = {
 export type YouTubeSyncState = SyncState & {
     options: {
         isPaused: boolean;
-        isPremiere: boolean;
         offset: number;
     };
 };

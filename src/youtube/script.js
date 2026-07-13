@@ -170,11 +170,11 @@ function getMetadata() {
 
     // to determine whether this is a premiere or a regular livestream, just look for the "Premiered" keyword somewhere in the page
 
-    const infoSpans = document.querySelectorAll('#info-container span');
-
-    const isPremiere = infoSpans.some((span) =>
-        span.textContent.includes('Premiered'),
+    const infoText = document.querySelector(
+        '#info-strings yt-formatted-string',
     );
+
+    const isPremiere = infoText.textContent.includes('Premiered');
 
     if (!publication.endDate) {
         // this is an ongoing livestream. do not show this on the list
