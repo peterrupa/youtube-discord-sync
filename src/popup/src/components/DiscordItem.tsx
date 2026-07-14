@@ -8,8 +8,6 @@ type DiscordItemProps = {
     disabled?: boolean;
 };
 
-// @TODO: handle overflow
-
 export function DiscordItem({
     tab,
     selected,
@@ -28,7 +26,9 @@ export function DiscordItem({
             disabled={disabled}
         >
             <img className="w-4 mr-2" src={tab.metadata.favIconUrl} />
-            {`${tab.metadata.serverName ? `${tab.metadata.serverName} - ` : ''}${tab.metadata.channelName}`}
+            <p className="min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
+                {`${tab.metadata.serverName ? `${tab.metadata.serverName} - ` : ''}${tab.metadata.channelName}`}
+            </p>
         </button>
     );
 }
