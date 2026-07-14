@@ -22,7 +22,7 @@ export function SyncItem({ data, onClick }: SyncItemProps) {
                     className="w-4 mr-2"
                     src={data.discordTab.metadata.favIconUrl}
                 />
-                <span className="min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
+                <span className="font-bold min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
                     {data.discordTab.metadata.channelName}
                 </span>
             </div>
