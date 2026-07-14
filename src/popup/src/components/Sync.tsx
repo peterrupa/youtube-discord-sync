@@ -79,10 +79,12 @@ export function Sync({
                     </div>
 
                     <div className="mb-2 text-xs">
-                        <p className="font-bold mb-1">
+                        <p className="font-bold mb-1 line-clamp-2">
                             {item.youtubeTab.metadata.title}
                         </p>
-                        <p>{item.youtubeTab.metadata.channelTitle}</p>
+                        <p className="line-clamp-2">
+                            {item.youtubeTab.metadata.channelTitle}
+                        </p>
                     </div>
 
                     <div className="flex justify-between items-center py-2">
