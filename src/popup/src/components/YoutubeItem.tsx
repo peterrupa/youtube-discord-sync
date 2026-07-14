@@ -36,9 +36,13 @@ export function YouTubeItem({
                 />
             </div>
             <div className="pl-2 min-w-0 overflow-hidden">
-                <div className="font-bold mb-1">{tab.metadata.title}</div>
+                <div className="font-bold mb-1 text-ellipsis overflow-hidden">
+                    {tab.metadata.title}
+                </div>
                 {tab.metadata.channelTitle && (
-                    <div className="text-xs">{tab.metadata.channelTitle}</div>
+                    <div className="text-xs text-ellipsis overflow-hidden">
+                        {tab.metadata.channelTitle}
+                    </div>
                 )}
             </div>
         </button>
