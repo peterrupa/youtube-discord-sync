@@ -73,7 +73,6 @@ export function Selector({
                                 selected={
                                     selectedYouTubeTab?.tabId === tab.tabId
                                 }
-                                disabled={isTabSyncing(tab.tabId)}
                             />
                         ))
                     ) : (
