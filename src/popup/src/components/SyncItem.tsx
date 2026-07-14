@@ -17,12 +17,14 @@ export function SyncItem({ data, onClick }: SyncItemProps) {
                     src={data.youtubeTab.metadata.thumbnail || ''}
                 />
             </div>
-            <div className="flex-1 flex items-center h-full">
+            <div className="flex-1 flex items-center h-full min-w-0 overflow-hidden">
                 <img
                     className="w-4 mr-2"
                     src={data.discordTab.metadata.favIconUrl}
                 />
-                <span>{data.discordTab.metadata.channelName}</span>
+                <span className="min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
+                    {data.discordTab.metadata.channelName}
+                </span>
             </div>
         </button>
     );
