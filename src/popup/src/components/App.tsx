@@ -12,12 +12,184 @@ import { Selection } from './Selection';
 import { Sync } from './Sync';
 import { SyncList } from './SyncList';
 
-type Page = 'home' | 'selection' | 'sync-details';
+type Page = 'home' | 'selection';
 
-function App() {
+type AppContentProps = {
+    youtubeTabs: YouTubeTab[];
+    discordTabs: DiscordTab[];
+};
+
+function AppContent({ youtubeTabs, discordTabs }: AppContentProps) {
     const queryClient = useQueryClient();
     const [currentPage, setCurrentPage] = useState<Page>('home');
 
+    const syncItems = useMemo(() => {
+        if (!discordTabs || !youtubeTabs) {
+            return [];
+        }
+
+        const _syncItems: SyncItem[] = [];
+
+        for (const discordTab of discordTabs) {
+            for (const activeSync of discordTab.activeSyncs) {
+                const youtubeTab = youtubeTabs.find((tab) => {
+                    return tab.tabId === activeSync.tabId;
+                });
+
+                if (!youtubeTab) {
+                    continue;
+                }
+
+                const syncStateFromYouTube = youtubeTab.activeSyncs.find(
+                    (sync) => {
+                        return sync.tabId === discordTab.tabId;
+                    },
+                );
+
+                if (!syncStateFromYouTube) {
+                    continue;
+                }
+
+                _syncItems.push({
+                    id: `${discordTab.tabId}/${activeSync.tabId}`,
+                    youtubeTab,
+                    discordTab,
+                    options: syncStateFromYouTube!.options,
+                });
+            }
+        }
+
+        return _syncItems;
+    }, [youtubeTabs, discordTabs]);
+
+    const [selectedSyncItemId, setSelectedSyncItemId] = useState<string | null>(
+        syncItems.length === 1 ? syncItems[0].id : null,
+    );
+
+    const selectedSyncItem = syncItems.find(
+        (item) => item.id === selectedSyncItemId,
+    );
+
+    async function initializeSyncing(
+        youtubeTab: YouTubeTab,
+        discordTab: DiscordTab,
+    ) {
+        chrome.tabs.sendMessage(youtubeTab.tabId, {
+            message: 'sync_start',
+            tabId: discordTab.tabId,
+        });
+        chrome.tabs.sendMessage(discordTab.tabId, {
+            message: 'sync_start',
+            tabId: youtubeTab.tabId,
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
+        queryClient.invalidateQueries({ queryKey: ['discordTabs'] });
+
+        setCurrentPage('home');
+    }
+
+    function handleSyncCancel(syncItem: SyncItem) {
+        chrome.tabs.sendMessage(syncItem.youtubeTab.tabId, {
+            message: 'sync_stop',
+            tabId: syncItem.discordTab.tabId,
+        });
+
+        chrome.tabs.sendMessage(syncItem.discordTab.tabId, {
+            message: 'sync_stop',
+            tabId: syncItem.youtubeTab.tabId,
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
+        queryClient.invalidateQueries({ queryKey: ['discordTabs'] });
+    }
+
+    function handlePauseChange(syncItem: SyncItem, value: boolean) {
+        chrome.tabs.sendMessage(syncItem.youtubeTab.tabId, {
+            message: 'sync_option_update',
+            tabId: syncItem.discordTab.tabId,
+            options: {
+                isPaused: value,
+            },
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
+    }
+
+    function handleOffsetChange(syncItem: SyncItem, value: number) {
+        chrome.tabs.sendMessage(syncItem.youtubeTab.tabId, {
+            message: 'sync_option_update',
+            tabId: syncItem.discordTab.tabId,
+            options: {
+                offset: value,
+            },
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
+    }
+
+    function handleAddSync() {
+        setCurrentPage('selection');
+    }
+
+    function handleBack() {
+        setCurrentPage('home');
+        setSelectedSyncItemId(null);
+    }
+
+    function handleActiveSyncSelect(syncItem: SyncItem) {
+        setSelectedSyncItemId(syncItem.id);
+    }
+
+    if (selectedSyncItem) {
+        return (
+            <Sync
+                item={selectedSyncItem}
+                onBack={handleBack}
+                onPauseChange={(value) =>
+                    handlePauseChange(selectedSyncItem, value)
+                }
+                onCancel={() => handleSyncCancel(selectedSyncItem)}
+                onOffsetChange={(value) =>
+                    handleOffsetChange(selectedSyncItem, value)
+                }
+            />
+        );
+    }
+
+    if (currentPage === 'selection') {
+        return (
+            <Selection
+                youtubeTabs={youtubeTabs}
+                discordTabs={discordTabs}
+                syncItems={syncItems}
+                onSync={initializeSyncing}
+                onBack={handleBack}
+            />
+        );
+    }
+
+    if (!syncItems.length) {
+        return (
+            <Selection
+                youtubeTabs={youtubeTabs}
+                discordTabs={discordTabs}
+                syncItems={syncItems}
+                onSync={initializeSyncing}
+            />
+        );
+    }
+
+    return (
+        <SyncList
+            syncItems={syncItems}
+            onAddSyncClick={handleAddSync}
+            onActiveSyncSelect={handleActiveSyncSelect}
+        />
+    );
+}
+
+function App() {
     const { data: youtubeTabs } = useQuery<YouTubeTab[]>({
         queryKey: ['youtubeTabs'],
         queryFn: async () => {
@@ -109,174 +281,11 @@ function App() {
         },
     });
 
-    const syncItems = useMemo(() => {
-        if (!discordTabs || !youtubeTabs) {
-            return [];
-        }
-
-        const _syncItems: SyncItem[] = [];
-
-        for (const discordTab of discordTabs) {
-            for (const activeSync of discordTab.activeSyncs) {
-                const youtubeTab = youtubeTabs.find((tab) => {
-                    return tab.tabId === activeSync.tabId;
-                });
-
-                if (!youtubeTab) {
-                    continue;
-                }
-
-                const syncStateFromYouTube = youtubeTab.activeSyncs.find(
-                    (sync) => {
-                        return sync.tabId === discordTab.tabId;
-                    },
-                );
-
-                if (!syncStateFromYouTube) {
-                    continue;
-                }
-
-                _syncItems.push({
-                    id: `${discordTab.tabId}/${activeSync.tabId}`,
-                    youtubeTab,
-                    discordTab,
-                    options: syncStateFromYouTube!.options,
-                });
-            }
-        }
-
-        return _syncItems;
-    }, [youtubeTabs, discordTabs]);
-
-    const [selectedSyncItemId, setSelectedSyncItemId] = useState<string | null>(
-        null,
-    );
-
-    const selectedSyncItem = syncItems.find(
-        (item) => item.id === selectedSyncItemId,
-    );
-
-    async function initializeSyncing(
-        youtubeTab: YouTubeTab,
-        discordTab: DiscordTab,
-    ) {
-        chrome.tabs.sendMessage(youtubeTab.tabId, {
-            message: 'sync_start',
-            tabId: discordTab.tabId,
-        });
-        chrome.tabs.sendMessage(discordTab.tabId, {
-            message: 'sync_start',
-            tabId: youtubeTab.tabId,
-        });
-
-        queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
-        queryClient.invalidateQueries({ queryKey: ['discordTabs'] });
-
-        setCurrentPage('home');
-    }
-
-    function handleSyncCancel(syncItem: SyncItem) {
-        chrome.tabs.sendMessage(syncItem.youtubeTab.tabId, {
-            message: 'sync_stop',
-            tabId: syncItem.discordTab.tabId,
-        });
-
-        chrome.tabs.sendMessage(syncItem.discordTab.tabId, {
-            message: 'sync_stop',
-            tabId: syncItem.youtubeTab.tabId,
-        });
-
-        queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
-        queryClient.invalidateQueries({ queryKey: ['discordTabs'] });
-    }
-
-    function handlePauseChange(syncItem: SyncItem, value: boolean) {
-        chrome.tabs.sendMessage(syncItem.youtubeTab.tabId, {
-            message: 'sync_option_update',
-            tabId: syncItem.discordTab.tabId,
-            options: {
-                isPaused: value,
-            },
-        });
-
-        queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
-    }
-
-    function handleOffsetChange(syncItem: SyncItem, value: number) {
-        chrome.tabs.sendMessage(syncItem.youtubeTab.tabId, {
-            message: 'sync_option_update',
-            tabId: syncItem.discordTab.tabId,
-            options: {
-                offset: value,
-            },
-        });
-
-        queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
-    }
-
-    function handleAddSync() {
-        setCurrentPage('selection');
-    }
-
-    function handleBack() {
-        setCurrentPage('home');
-    }
-
-    function handleActiveSyncSelect(syncItem: SyncItem) {
-        setSelectedSyncItemId(syncItem.id);
-        setCurrentPage('sync-details');
-    }
-
     if (!youtubeTabs || !discordTabs) {
         return <div></div>;
     }
 
-    if (currentPage === 'sync-details' && selectedSyncItem) {
-        return (
-            <Sync
-                item={selectedSyncItem}
-                onBack={handleBack}
-                onPauseChange={(value) =>
-                    handlePauseChange(selectedSyncItem, value)
-                }
-                onCancel={() => handleSyncCancel(selectedSyncItem)}
-                onOffsetChange={(value) =>
-                    handleOffsetChange(selectedSyncItem, value)
-                }
-            />
-        );
-    }
-
-    if (currentPage === 'selection') {
-        return (
-            <Selection
-                youtubeTabs={youtubeTabs}
-                discordTabs={discordTabs}
-                syncItems={syncItems}
-                onSync={initializeSyncing}
-                onBack={handleBack}
-            />
-        );
-    }
-
-    if (!syncItems.length) {
-        return (
-            <Selection
-                youtubeTabs={youtubeTabs}
-                discordTabs={discordTabs}
-                syncItems={syncItems}
-                onSync={initializeSyncing}
-            />
-        );
-    }
-
-    return (
-        <SyncList
-            syncItems={syncItems}
-            onAddSyncClick={handleAddSync}
-            onActiveSyncSelect={handleActiveSyncSelect}
-        />
-    );
+    return <AppContent youtubeTabs={youtubeTabs} discordTabs={discordTabs} />;
 }
 
 export default App;
