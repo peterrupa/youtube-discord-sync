@@ -87,6 +87,16 @@ function AppContent({ youtubeTabs, discordTabs }: AppContentProps) {
         queryClient.invalidateQueries({ queryKey: ['discordTabs'] });
 
         setCurrentPage('home');
+
+        // change extension icon to colored
+        chrome.action.setIcon({
+            path: {
+                16: '../assets/16.png',
+                32: '../assets/32.png',
+                48: '../assets/48.png',
+                128: '../assets/128.png',
+            },
+        });
     }
 
     function handleSyncCancel(syncItem: SyncItem) {
@@ -102,6 +112,18 @@ function AppContent({ youtubeTabs, discordTabs }: AppContentProps) {
 
         queryClient.invalidateQueries({ queryKey: ['youtubeTabs'] });
         queryClient.invalidateQueries({ queryKey: ['discordTabs'] });
+
+        // change extension icon to gray if this is the last sync item
+        if (syncItems.length === 1) {
+            chrome.action.setIcon({
+                path: {
+                    16: '../assets/16_gray.png',
+                    32: '../assets/32_gray.png',
+                    48: '../assets/48_gray.png',
+                    128: '../assets/128_gray.png',
+                },
+            });
+        }
     }
 
     function handlePauseChange(syncItem: SyncItem, value: boolean) {
