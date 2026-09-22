@@ -20,7 +20,7 @@ async function handleMessage(request, sender, sendResponse) {
 }
 
 async function run() {
-    console.log('YouTube Discord VOD service worker is running.');
+    console.log('Discord Time Machine VOD service worker is running.');
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         handleMessage(request, sender, sendResponse);

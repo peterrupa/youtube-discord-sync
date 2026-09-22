@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "YouTube Discord Sync",
-    "description": "Replays Discord chat while playing YouTube VODs.",
+    "name": "Discord Time Machine",
+    "description": "Replays Discord chat as it did in the past",
     "version": "0.1",
     "action": {
         "default_popup": "popup/index.html"
