@@ -54,10 +54,6 @@ async function run() {
         if (request.message === 'sync_stop') {
             syncStop(request.tabId);
         }
-
-        if (request.message === 'fetch_info') {
-            sendResponse({ activeSyncs: tabsToSync });
-        }
     }
 
     chrome.runtime.onMessage.addListener(handleMessage);
@@ -69,6 +65,8 @@ async function run() {
     function syncStop(tabId) {
         tabsToSync = tabsToSync.filter((tab) => tab.tabId !== tabId);
     }
+
+    return true;
 }
 
 run();

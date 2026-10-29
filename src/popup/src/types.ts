@@ -1,11 +1,3 @@
-export type Tab = {
-    tabId: number;
-    url: string;
-    favIconUrl: string;
-    title: string;
-    type: 'youtube' | 'discord';
-};
-
 export type YouTubeMetadata = {
     id: string;
     title: string;
@@ -15,30 +7,17 @@ export type YouTubeMetadata = {
     isPremiere: boolean;
 };
 
-export type YouTubeTab = {
-    tabId: number;
-    metadata: YouTubeMetadata;
-    activeSyncs: YouTubeSyncState[];
+export type YouTubeSyncOptions = {
+    offset: number;
+    isPaused: boolean;
+    isPremiere: boolean;
 };
 
-export type DiscordTab = {
-    tabId: number;
-    metadata: {
-        favIconUrl: string;
-        serverName: string;
-        channelName: string;
-    };
-    activeSyncs: SyncState[];
-};
-
-export type SyncItem = {
-    id: string;
-    youtubeTab: YouTubeTab;
-    discordTab: DiscordTab;
-    options: {
-        isPaused: boolean;
-        offset: number;
-    };
+export type YouTubeTabInformation = {
+    id: number;
+    metadata: YouTubeMetadata | null;
+    activeSyncs: number[];
+    options: YouTubeSyncOptions;
 };
 
 export type MessageEvent = {
@@ -50,13 +29,23 @@ export type TimestampUpdateEvent = MessageEvent & {
     timestamp: string;
 };
 
-export type SyncState = {
-    tabId: number;
-};
-
-export type YouTubeSyncState = SyncState & {
-    options: {
-        isPaused: boolean;
-        offset: number;
-    };
-};
+export type DiscordTab = {
+    id: number;
+    error: string | null;
+} & (
+    | {
+          state: 'active'; // available for syncing, or is already syncing
+          serverName: string | null;
+          channelName: string;
+      }
+    | {
+          state: 'error';
+          serverName: string | null;
+          channelName: string | null;
+      }
+    | {
+          state: 'invalid'; // not in a syncable channel page
+          serverName: string | null;
+          channelName: null;
+      }
+);

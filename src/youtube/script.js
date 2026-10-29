@@ -1,5 +1,10 @@
 async function run() {
     let tabsToSync = [];
+    let options = {
+        offset: 3,
+        isPaused: false,
+        isPremiere: false,
+    };
 
     const microformatElement = await waitForElement('#microformat');
     const videoStreamElement = await waitForElement('.video-stream');
@@ -8,7 +13,7 @@ async function run() {
 
     function handleMessage(request, sender, sendResponse) {
         if (request.message === 'fetch_info') {
-            sendResponse({ metadata, activeSyncs: tabsToSync });
+            sendResponse({ metadata, activeSyncs: tabsToSync, options });
         }
 
         if (request.message === 'sync_start') {
@@ -24,21 +29,19 @@ async function run() {
         }
 
         if (request.message === 'sync_option_update') {
-            const { tabId, options } = request;
+            const { options: _options } = request;
 
-            tabsToSync = tabsToSync.map((tab) => {
-                if (tab.tabId === tabId) {
-                    return {
-                        ...tab,
-                        options: {
-                            ...tab.options,
-                            ...options,
-                        },
-                    };
-                }
+            options = { ...options, ..._options };
+        }
 
-                return tab;
-            });
+        if (request.message === 'fetch_timestamp') {
+            if (!videoStreamElement) {
+                sendResponse({ timestamp: null });
+
+                return;
+            }
+
+            sendResponse({ timestamp: getTimestamp() });
         }
     }
 
@@ -48,39 +51,44 @@ async function run() {
         return;
     }
 
+    function getTimestamp() {
+        if (!videoStreamElement || !metadata) {
+            return null;
+        }
+
+        const currentTime = videoStreamElement.currentTime;
+        const duration = videoStreamElement.duration;
+
+        let startDateTime = metadata.startDateTime;
+        let endDateTime = metadata.endDateTime;
+
+        startDateTime = new Date(startDateTime);
+        endDateTime = new Date(endDateTime);
+
+        if (metadata.isPremiere) {
+            // startDateTime does not include the countdown timer
+            // Instead, lets figure out the startDateTime by using the video length and endStartDate
+            // Why not use that for actual livestreams? I don't know, when I do this for livestreams, there's a noticable delay in chat
+            startDateTime = new Date(endDateTime.getTime() - duration * 1000);
+        }
+
+        return new Date(
+            startDateTime.getTime() + (currentTime - options.offset) * 1000,
+        ).toISOString();
+    }
+
     // always send a timestamp update whenever the main video element is played
     function handleTimeUpdate(event) {
-        tabsToSync.forEach((tab) => {
-            if (tab.options.isPaused) {
-                return;
-            }
+        if (options.isPaused) {
+            return;
+        }
 
-            const currentTime = event.target.currentTime;
-            const duration = videoStreamElement.duration;
+        const timestamp = getTimestamp();
 
-            let startDateTime = metadata.startDateTime;
-            let endDateTime = metadata.endDateTime;
-
-            startDateTime = new Date(startDateTime);
-            endDateTime = new Date(endDateTime);
-
-            if (metadata.isPremiere) {
-                // startDateTime does not include the countdown timer
-                // Instead, lets figure out the startDateTime by using the video length and endStartDate
-                // Why not use that for actual livestreams? I don't know, when I do this for livestreams, there's a noticable delay in chat
-                startDateTime = new Date(
-                    endDateTime.getTime() - duration * 1000,
-                );
-            }
-
-            const timestamp = new Date(
-                startDateTime.getTime() +
-                    (currentTime - tab.options.offset) * 1000,
-            ).toISOString();
-
+        tabsToSync.forEach((tabId) => {
             chrome.runtime.sendMessage({
                 message: 'video_timeupdate',
-                tabId: tab.tabId,
+                tabId: tabId,
                 timestamp,
             });
         });
@@ -110,25 +118,18 @@ async function run() {
     videoStreamObserver.observe(videoStreamElement, { attributes: true });
 
     function syncStart(tabId) {
-        tabsToSync.push({
-            tabId,
-            options: {
-                offset: 3,
-                isPaused: false,
-                isPremiere: false,
-            },
-        });
+        tabsToSync.push(tabId);
     }
 
     function syncStop(tabId) {
-        tabsToSync = tabsToSync.filter((tab) => tab.tabId !== tabId);
+        tabsToSync = tabsToSync.filter((_tabId) => tabId !== _tabId);
     }
 
     function clearAllSync() {
-        tabsToSync.forEach((tab) => {
+        tabsToSync.forEach((tabId) => {
             chrome.runtime.sendMessage({
                 message: 'sync_stop',
-                tabId: tab.tabId,
+                tabId,
             });
         });
 
